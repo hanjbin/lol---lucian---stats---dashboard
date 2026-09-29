@@ -28,11 +28,13 @@
       "cooldown": [19, 17.75, 16.5, 15.25, 14]
     },
     "R": {
-      "name": "끝장내기",
+      "name": "빛의 심판",
       "damage_type": "physical",
       "base_damage": [15, 30, 45],
       "total_ad_ratio": [0.25, 0.25, 0.25],
       "hits": 22,
+      "_crit_chance_shot_scaling_comment": "치명타 확률 100%일 때 기본 발사 수의 몇 배가 추가되는지 (1.0 -> 22~44발). 위키 V26.01 기준.",
+      "crit_chance_shot_scaling": 1.0,
       "cooldown": [110, 100, 90]
     }
   }

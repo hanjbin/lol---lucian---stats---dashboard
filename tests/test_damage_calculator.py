@@ -1,3 +1,5 @@
+import pytest
+
 from app.models.champion import Champion
 from app.models.item import Item, ItemBuild
 from app.models.opponent import Opponent
@@ -27,7 +29,7 @@ def test_combine_stats_adds_item_totals():
 
     items = Item.load_all()
     build = ItemBuild()
-    build.add(items["3031"])  # 무한의 검: AD 65, 치명타 확률 0.25
+    build.add(items["3031"])  # 무한의 대검: AD 65, 치명타 확률 0.25
 
     combined = combine_stats(stats, build)
 
@@ -76,3 +78,33 @@ def test_auto_attack_dps_scales_with_attack_speed():
     dps = auto_attack_dps(combined, opponent, 18)
     single_hit = expected_auto_attack_damage(combined, opponent, 18)
     assert dps == single_hit * combined.attack_speed
+
+
+def test_crit_damage_is_200_percent_by_default_and_230_with_infinity_edge():
+    stats = Champion.load("Lucian").stats_at_level(18)
+    items = Item.load_all()
+    assert combine_stats(stats, ItemBuild()).crit_damage == 2.0
+
+    build = ItemBuild()
+    build.add(items["3072"])  # 피바라기: 치명타 확률만 있고 치명타 피해량 증가 없음
+    assert combine_stats(stats, build).crit_damage == 2.0
+
+    build.add(items["3031"])  # 무한의 대검
+    assert combine_stats(stats, build).crit_damage == pytest.approx(2.3)
+
+
+def test_expected_crit_factor_is_weighted_average_of_normal_and_crit():
+    stats = Champion.load("Lucian").stats_at_level(18)
+    build = ItemBuild()
+    build.add(Item.load_all()["3031"])  # 치명타 확률 25%, 치명타 피해량 230%
+    combined = combine_stats(stats, build)
+
+    normal = combined.attack_damage
+    expected = normal * (1 - 0.25) + normal * 2.3 * 0.25
+    assert combined.attack_damage * combined.expected_crit_factor == pytest.approx(expected)
+
+    opponent = Opponent.load_by_id("generic_squishy")
+    armor = opponent.armor_at_level(18)
+    assert expected_auto_attack_damage(combined, opponent, 18) == pytest.approx(
+        expected * 100 / (100 + armor)
+    )

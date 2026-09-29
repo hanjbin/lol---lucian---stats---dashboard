@@ -16,6 +16,7 @@ class Item:
     name: str
     plaintext: str
     stats: Dict[str, float] = field(default_factory=dict)
+    crit_damage_bonus: float = 0.0  # 추가 치명타 피해량 (무한의 대검 패시브 등)
 
     @classmethod
     def load_all(cls, path: Optional[Path] = None) -> Dict[str, "Item"]:
@@ -30,6 +31,7 @@ class Item:
                 name=data["name"],
                 plaintext=data.get("plaintext", ""),
                 stats=data.get("stats", {}),
+                crit_damage_bonus=data.get("crit_damage_bonus", 0.0),
             )
         return items
 
@@ -75,3 +77,7 @@ class ItemBuild:
             for stat, value in item.stats.items():
                 totals[stat] = totals.get(stat, 0.0) + value
         return totals
+
+    def crit_damage_bonus(self) -> float:
+        # 무한의 대검 패시브는 고유(Unique) 효과라 여러 개를 껴도 중첩되지 않음 -> 합이 아닌 최댓값
+        return max((item.crit_damage_bonus for item in self.items), default=0.0)

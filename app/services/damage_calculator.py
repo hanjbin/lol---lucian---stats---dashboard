@@ -7,9 +7,9 @@ from app.models.item import ItemBuild
 from app.models.opponent import Opponent
 from app.models.rune import Rune
 
-# 리그 오브 레전드 기본 치명타 피해 배율. 무한의 검 등 배율을 늘려주는
-# 아이템 효과는 아직 모델링하지 않음 (data/items.json 참고).
-DEFAULT_CRIT_MULTIPLIER = 1.75
+# 기본 치명타 피해량 200% (League of Legends 위키 스탯 표 기준).
+# 무한의 대검을 끼면 추가 치명타 피해량 +30%p -> 230% (data/items.json의 crit_damage_bonus).
+BASE_CRIT_DAMAGE = 2.0
 
 
 @dataclass(frozen=True)
@@ -22,6 +22,17 @@ class CombinedStats:
     crit_chance: float
     life_steal_percent: float
     ability_haste: float
+    crit_damage: float = BASE_CRIT_DAMAGE  # 치명타 시 피해 배율 (2.0 = 200%)
+
+    @property
+    def expected_crit_factor(self) -> float:
+        """치명타 확률을 반영한 평균 피해 배율.
+
+        매번 치명타를 랜덤으로 굴리지 않고 기댓값으로 계산:
+          평균 = 일반 × (1 - 치명타확률) + 일반 × 치명타배율 × 치명타확률
+               = 일반 × (1 + 치명타확률 × (치명타배율 - 1))
+        """
+        return 1 + self.crit_chance * (self.crit_damage - 1)
 
 
 def _rune_flat_stats(runes: Iterable[Rune]) -> Dict[str, float]:
@@ -66,6 +77,7 @@ def combine_stats(
         crit_chance=min(crit_chance, 1.0),
         life_steal_percent=life_steal,
         ability_haste=ability_haste,
+        crit_damage=BASE_CRIT_DAMAGE + item_build.crit_damage_bonus(),
     )
 
 
@@ -83,8 +95,7 @@ def expected_auto_attack_damage(
 ) -> float:
     """치명타 확률을 고려한 평타 1회 기대 데미지 (방어력 적용 후)."""
     armor = opponent.armor_at_level(opponent_level)
-    crit_multiplier = 1 + stats.crit_chance * (DEFAULT_CRIT_MULTIPLIER - 1)
-    raw_damage = stats.attack_damage * crit_multiplier
+    raw_damage = stats.attack_damage * stats.expected_crit_factor
     return damage_after_resist(raw_damage, armor)
 
 

@@ -98,3 +98,25 @@ def test_passive_second_shot_adds_damage(kit, opponent):
     empowered = next(e for e in result.events if e.action == EMPOWERED_AUTO_ATTACK)
     armor = opponent.armor_at_level(18)
     assert empowered.damage == pytest.approx(100 * 1.60 * 100 / (100 + armor))
+
+
+def test_crit_uses_expected_value_on_autos_but_not_on_r_shots(kit, opponent):
+    stats = CombinedStats(
+        attack_damage=100.0,
+        bonus_attack_damage=0.0,
+        attack_speed=1.0,
+        crit_chance=0.4,
+        life_steal_percent=0.0,
+        ability_haste=0.0,
+        crit_damage=2.3,
+    )
+    result = burst_combo(kit, 18, stats, opponent, 18)
+    armor = opponent.armor_at_level(18)
+    crit_factor = (1 - 0.4) + 2.3 * 0.4
+
+    empowered = next(e for e in result.events if e.action == EMPOWERED_AUTO_ATTACK)
+    assert empowered.damage == pytest.approx(100 * 1.60 * crit_factor * 100 / (100 + armor))
+
+    # R: 치명타 배율 없이, 치명타 확률 40% -> 30발
+    r_event = next(e for e in result.events if e.action == "R")
+    assert r_event.damage == pytest.approx((45 + 0.25 * 100) * 30 * 100 / (100 + armor))

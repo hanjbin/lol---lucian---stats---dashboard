@@ -105,11 +105,12 @@ combined = replace(combined, ability_haste=combined.ability_haste + extra_abilit
 opponent = opponents[opponent_id]
 
 st.subheader("합산 스탯")
-col1, col2, col3, col4 = st.columns(4)
+col1, col2, col3, col4, col5 = st.columns(5)
 col1.metric("공격력", f"{combined.attack_damage:.1f}")
 col2.metric("공격속도", f"{combined.attack_speed:.2f}")
 col3.metric("치명타 확률", f"{combined.crit_chance * 100:.0f}%")
-col4.metric("생명흡수", f"{combined.life_steal_percent * 100:.0f}%")
+col4.metric("치명타 피해량", f"{combined.crit_damage * 100:.0f}%")
+col5.metric("생명흡수", f"{combined.life_steal_percent * 100:.0f}%")
 
 st.subheader(f"{opponent.name} (레벨 {opponent_level}) 대상 평타 딜량")
 single_hit = expected_auto_attack_damage(combined, opponent, opponent_level)
@@ -120,8 +121,8 @@ col1.metric("평타 1회 기대 데미지", f"{single_hit:.1f}")
 col2.metric("초당 평타 데미지 (DPS)", f"{dps:.1f}")
 
 st.caption(
-    "치명타 피해 배율은 기본값(175%)만 반영하며, 룬 조건부 효과·"
-    "아이템 특수 효과(무한의 검 치명타 피해 증가 등)는 아직 계산에 포함되지 않습니다."
+    "치명타는 확률 기반 기댓값으로 계산합니다 (치명타 피해량 기본 200%, 무한의 대검 보유 시 230%). "
+    "룬 조건부 효과와 그 외 아이템 특수 효과는 아직 계산에 포함되지 않습니다."
 )
 
 st.subheader("스킬 콤보")
@@ -145,10 +146,17 @@ with burst_col:
     st.markdown("**폭딜 콤보**")
     st.caption("E → 평타 → Q → 평타 → W → 평타 → R → 평타 (1회, 시간 제한 없음)")
     st.metric("총 데미지", f"{burst_result.total_damage:.1f}")
+    if kit.rank_at_level("R", level) > 0:
+        st.caption(
+            f"R 발사 수: {kit.skills['R'].hit_count(combined.crit_chance)}발 "
+            "(22 × (1 + 치명타 확률), 소수점 버림)"
+        )
     with st.expander("시퀀스"):
         st.dataframe(combo_table(burst_result), hide_index=True)
 
 st.caption(
     "가정: 스킬 시전 시간·투사체 이동 시간 0, 평타는 공격속도 간격으로 꾸준히 발생, "
-    "스킬 사용 후 다음 평타는 패시브(빛의 사도)로 2연발, 스킬은 전부 명중·치명타 없음, AP 0."
+    "스킬 사용 후 다음 평타는 패시브(빛의 사도)로 2연발, 스킬은 전부 명중, AP 0. "
+    "평타는 치명타 기댓값 적용, R은 탄환 치명타 대신 치명타 확률만큼 발사 수 증가 "
+    "(추가 치명타 피해량에 따른 R 추가 발사는 공식 미확인으로 미반영)."
 )

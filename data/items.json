@@ -1,15 +1,16 @@
 {
-  "_comment": "Data Dragon item.json 형식(stats 키 이름 포함)을 참고한 예시 데이터. 아이템 패시브/액티브 효과(예: 무한의 검 치명타 피해 증가, 크라켄의 슬레이어 고정 피해)는 아직 모델링하지 않음 - TODO.",
+  "_comment": "Data Dragon item.json 형식(stats 키 이름 포함)을 참고한 예시 데이터. crit_damage_bonus는 Data Dragon stats에 없는 패시브 효과라 별도 필드로 둠(추가 치명타 피해량, 0.30 = +30%p). 그 외 패시브/액티브 효과(예: 크라켄의 슬레이어 고정 피해)는 아직 모델링하지 않음 - TODO.",
   "type": "item",
   "version": "example-14.19.1",
   "data": {
     "3031": {
-      "name": "무한의 검",
+      "name": "무한의 대검",
       "plaintext": "치명타 피해량 증가 아이템",
       "stats": {
         "FlatPhysicalDamageMod": 65.0,
         "FlatCritChanceMod": 0.25
-      }
+      },
+      "crit_damage_bonus": 0.30
     },
     "6672": {
       "name": "크라켄의 슬레이어",

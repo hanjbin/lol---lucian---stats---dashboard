@@ -7,8 +7,14 @@
   아직 배우지 않은 스킬(랭크 0)은 콤보에서 건너뜀.
 - 패시브(빛의 사도): 스킬 사용 후 다음 평타 1회가 2연발. 스킬을 연달아 여러 개 써도
   다음 평타 1회에만 적용(중첩 없음). 패시브 적중 시 E 쿨타임 감소 효과는 미반영.
-- 평타(패시브 2번째 탄환 포함)는 치명타 확률 기댓값을 적용하고, 스킬은 치명타가 없다고 가정.
-- 스킬은 모든 타가 명중한다고 가정 (R의 모든 탄환 명중, 치명타 확률에 따른 R 추가 탄환 미반영).
+- 치명타는 랜덤으로 굴리지 않고 기댓값으로 계산 (CombinedStats.expected_crit_factor):
+  평타 1회 평균 = 일반 × (1 - 치명타확률) + 일반 × 치명타배율 × 치명타확률.
+  치명타 배율은 기본 200%, 무한의 대검 보유 시 230%. 패시브 2번째 탄환도 치명타를
+  별도로 판정하므로(위키) 같은 기댓값을 적용.
+- R(빛의 심판)은 탄환 자체가 치명타로 터지지 않고, 대신 치명타 확률만큼 발사 수가
+  늘어나는 방식으로 반영 (위키 V26.01 기준, Skill.hit_count 참고). 그래서 R 피해에는
+  치명타 배율을 곱하지 않음 - 곱하면 치명타가 이중으로 반영됨. Q/W도 치명타 없음.
+- 스킬은 모든 타가 명중한다고 가정 (R의 모든 탄환 명중).
 - AP는 0으로 가정해 AP 계수는 무시.
 """
 from dataclasses import dataclass
@@ -16,7 +22,7 @@ from typing import Dict, List, Optional, Tuple
 
 from app.models.opponent import Opponent
 from app.models.skill import MAGIC, NO_DAMAGE, PHYSICAL, ChampionKit
-from app.services.damage_calculator import DEFAULT_CRIT_MULTIPLIER, CombinedStats, damage_after_resist
+from app.services.damage_calculator import CombinedStats, damage_after_resist
 
 DPS_COMBO_DURATION = 5.0
 # DPS 콤보 시작 순서: 각 스킬 사용 후 평타 1회 (E → 평타 → Q → 평타 → W → 평타). R은 사용하지 않음.
@@ -68,7 +74,6 @@ class _ComboDamageModel:
         self.passive_ratio = kit.passive_second_shot_ratio(level)
         self.armor = opponent.armor_at_level(opponent_level)
         self.magic_resist = opponent.magic_resist_at_level(opponent_level)
-        self.crit_multiplier = 1 + stats.crit_chance * (DEFAULT_CRIT_MULTIPLIER - 1)
 
     def is_learned(self, key: str) -> bool:
         return self.ranks[key] > 0
@@ -77,14 +82,17 @@ class _ComboDamageModel:
         raw = self.stats.attack_damage
         if empowered:
             raw += self.stats.attack_damage * self.passive_ratio
-        return damage_after_resist(raw * self.crit_multiplier, self.armor)
+        return damage_after_resist(raw * self.stats.expected_crit_factor, self.armor)
 
     def skill(self, key: str) -> float:
         skill = self.kit.skills[key]
         if skill.damage_type == NO_DAMAGE:
             return 0.0
         raw = skill.raw_damage(
-            self.ranks[key], self.stats.attack_damage, self.stats.bonus_attack_damage
+            self.ranks[key],
+            self.stats.attack_damage,
+            self.stats.bonus_attack_damage,
+            self.stats.crit_chance,
         )
         if skill.damage_type == PHYSICAL:
             return damage_after_resist(raw, self.armor)
