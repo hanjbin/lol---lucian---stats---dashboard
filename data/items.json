@@ -1,5 +1,5 @@
 {
-  "_comment": "Data Dragon item.json 형식(stats 키 이름 포함)을 참고한 예시 데이터. crit_damage_bonus는 Data Dragon stats에 없는 패시브 효과라 별도 필드로 둠(추가 치명타 피해량, 0.30 = +30%p). 도란 아이템과 2티어 신발(광전사의 군화 포함)은 Data Dragon 16.19.1 기준. Data Dragon stats에는 없고 설명에만 있는 스탯(AbilityHaste, PercentOmnivampMod, FlatMagicPenetrationMod, PercentTenacityMod)은 다재다능 스택 계산에 필요해 설명 수치로 추가함. 그 외 패시브/액티브 효과(예: 크라켄의 슬레이어 고정 피해, 판금 장화 피해 감소)는 아직 모델링하지 않음 - TODO.",
+  "_comment": "Data Dragon item.json 형식(stats 키 이름 포함)을 참고한 예시 데이터. crit_damage_bonus는 Data Dragon stats에 없는 패시브 효과라 별도 필드로 둠(추가 치명타 피해량, 0.30 = +30%p). 도란 아이템과 2티어 신발(광전사의 군화 포함)은 Data Dragon 16.19.1 기준. Data Dragon stats에는 없고 설명에만 있는 스탯(AbilityHaste, PercentOmnivampMod, FlatMagicPenetrationMod, PercentTenacityMod)은 다재다능 스택 계산에 필요해 설명 수치로 추가함. starter=true는 시작 아이템(도란류)으로, 상대 레벨 추정의 아이템 개수에서 제외. 그 외 패시브/액티브 효과(예: 크라켄의 슬레이어 고정 피해, 판금 장화 피해 감소)는 아직 모델링하지 않음 - TODO.",
   "type": "item",
   "version": "example-14.19.1",
   "data": {
@@ -27,7 +27,8 @@
         "FlatPhysicalDamageMod": 10.0,
         "FlatHPPoolMod": 80.0,
         "PercentOmnivampMod": 0.025
-      }
+      },
+      "starter": true
     },
     "1086": {
       "name": "도란의 활",
@@ -36,7 +37,8 @@
         "FlatPhysicalDamageMod": 8.0,
         "PercentAttackSpeedMod": 0.15,
         "PercentOmnivampMod": 0.015
-      }
+      },
+      "starter": true
     },
     "3006": {
       "name": "광전사의 군화",

@@ -32,6 +32,11 @@ def test_item_build_enforces_max_slots():
         build.add(items[0])
 
 
+def test_only_doran_items_are_starters():
+    starters = {item.name for item in Item.load_all().values() if item.is_starter}
+    assert starters == {"도란의 검", "도란의 활"}
+
+
 def test_infinity_edge_crit_damage_bonus_does_not_stack():
     items = Item.load_all()
     assert items["3031"].crit_damage_bonus == 0.30
