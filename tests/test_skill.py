@@ -52,3 +52,10 @@ def test_r_raw_damage_uses_crit_scaled_shot_count():
 def test_non_multi_hit_skills_ignore_crit_chance():
     q = ChampionKit.load().skills["Q"]
     assert q.hit_count(1.0) == 1
+
+
+def test_r_shot_count_includes_bonus_crit_damage_weighted_by_crit_chance():
+    r = ChampionKit.load().skills["R"]
+    assert r.hit_count(0.0, bonus_crit_damage=0.30) == 22  # 치명타 확률 0이면 추가 피해량 무의미
+    assert r.hit_count(0.65, bonus_crit_damage=0.30) == 40  # 22 × (1 + 0.65 × 1.3) = 40.59
+    assert r.hit_count(1.0, bonus_crit_damage=0.30) == 50  # 22 + 22 + 6.6 -> 툴팁 (+0~22 (+0~6))
