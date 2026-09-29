@@ -25,11 +25,6 @@ class CombinedStats:
     crit_damage: float = BASE_CRIT_DAMAGE  # 치명타 시 피해 배율 (2.0 = 200%)
 
     @property
-    def bonus_crit_damage(self) -> float:
-        """기본 200%를 넘는 추가 치명타 피해량 (무한의 대검 보유 시 0.30)."""
-        return self.crit_damage - BASE_CRIT_DAMAGE
-
-    @property
     def expected_crit_factor(self) -> float:
         """치명타 확률을 반영한 평균 피해 배율.
 

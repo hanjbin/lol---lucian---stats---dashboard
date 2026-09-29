@@ -42,33 +42,19 @@ class Skill:
             crit_chance_shot_scaling=data.get("crit_chance_shot_scaling", 0.0),
         )
 
-    def hit_count(self, crit_chance: float, bonus_crit_damage: float = 0.0) -> int:
-        """타격 수. 루시안 R은 치명타 확률과 추가 치명타 피해량에 따라 발사 수가 늘어남.
+    def hit_count(self, crit_chance: float) -> int:
+        """타격 수. 루시안 R은 치명타 확률만큼 발사 수가 늘어남 (위키 V26.01 기준).
 
-        위키 V26.01 패치 내역:
-          1) "치명타 확률에 따라 기본 발사 수의 0~100%만큼 증가"      -> 22 × 치명타확률
-          2) "치명타 확률에 따라 추가 치명타 피해량의 0~100%만큼 추가 증가"
-                                                                   -> 22 × 치명타확률 × 추가치명타피해량
-        발사 수 = 22 × (1 + 치명타확률 × (1 + 추가치명타피해량))
-        - 추가 치명타 피해량 = 치명타 피해량 - 기본 200% (무한의 대검 보유 시 0.30).
-        - 치명타 확률을 곱하므로 "치명타가 평균적으로 터졌을 때"의 기댓값 발사 수.
-        - 2)의 곱셈 해석은 위키 문구에서 도출한 것. 툴팁 "22 (+0~22 (+0~6))"의 +6이
-          치명타 100% × 무한의 대검 30%의 22 × 0.30 = 6.6과 맞아떨어져 이렇게 판단.
-        - 예: 치명타 40%, 무한의 대검 없음 -> 22 × 1.4 = 30.8 -> 30발
-              치명타 65%, 무한의 대검 보유 -> 22 × (1 + 0.65 × 1.3) = 40.59 -> 40발
+        발사 수 = 기본 22 × (1 + 치명타확률)  -> 22~44발 (예: 치명타 40% -> 30.8 -> 30발)
         - 소수점은 버림: 반 발은 쏠 수 없고 툴팁도 "최대 N발"이라 버림으로 판단.
           게임 내부의 실제 반올림 방식은 위키에 없어 확인되지 않은 가정.
+        - 발사 수에는 치명타 확률만 반영. 치명타 피해량(무한의 대검 등)은 발사 수에도,
+          탄환 피해에도 반영하지 않음.
         """
-        bonus_ratio = self.crit_chance_shot_scaling * crit_chance * (1 + bonus_crit_damage)
-        return math.floor(self.hits * (1 + bonus_ratio))
+        return math.floor(self.hits * (1 + self.crit_chance_shot_scaling * crit_chance))
 
     def raw_damage(
-        self,
-        rank: int,
-        total_ad: float,
-        bonus_ad: float,
-        crit_chance: float = 0.0,
-        bonus_crit_damage: float = 0.0,
+        self, rank: int, total_ad: float, bonus_ad: float, crit_chance: float = 0.0
     ) -> float:
         """방어력/마저 적용 전 피해량 (다단히트 스킬은 모든 타가 명중한다고 가정)."""
         i = rank - 1
@@ -77,7 +63,7 @@ class Skill:
             + self.bonus_ad_ratio[i] * bonus_ad
             + self.total_ad_ratio[i] * total_ad
         )
-        return per_hit * self.hit_count(crit_chance, bonus_crit_damage)
+        return per_hit * self.hit_count(crit_chance)
 
     def cooldown_at(self, rank: int, ability_haste: float) -> float:
         # 스킬 가속 공식: 실제 쿨타임 = 기본 쿨타임 * 100 / (100 + 스킬 가속)

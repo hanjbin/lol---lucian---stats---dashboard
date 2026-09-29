@@ -148,9 +148,8 @@ with burst_col:
     st.metric("총 데미지", f"{burst_result.total_damage:.1f}")
     if kit.rank_at_level("R", level) > 0:
         st.caption(
-            f"R 발사 수: "
-            f"{kit.skills['R'].hit_count(combined.crit_chance, combined.bonus_crit_damage)}발 "
-            "(22 × (1 + 치명타 확률 × (1 + 추가 치명타 피해량)), 소수점 버림)"
+            f"R 발사 수: {kit.skills['R'].hit_count(combined.crit_chance)}발 "
+            "(22 × (1 + 치명타 확률), 소수점 버림)"
         )
     with st.expander("시퀀스"):
         st.dataframe(combo_table(burst_result), hide_index=True)
@@ -158,6 +157,6 @@ with burst_col:
 st.caption(
     "가정: 스킬 시전 시간·투사체 이동 시간 0, 평타는 공격속도 간격으로 꾸준히 발생, "
     "스킬 사용 후 다음 평타는 패시브(빛의 사도)로 2연발, 스킬은 전부 명중, AP 0. "
-    "평타는 치명타 기댓값 적용, R은 탄환 치명타 대신 치명타 확률·추가 치명타 피해량"
-    "(무한의 대검)에 비례해 발사 수 증가."
+    "평타는 치명타 기댓값 적용, R은 치명타 확률만큼 발사 수만 증가하고 "
+    "탄환에 치명타 피해는 적용하지 않음."
 )

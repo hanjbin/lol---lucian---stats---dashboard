@@ -117,6 +117,6 @@ def test_crit_uses_expected_value_on_autos_but_not_on_r_shots(kit, opponent):
     empowered = next(e for e in result.events if e.action == EMPOWERED_AUTO_ATTACK)
     assert empowered.damage == pytest.approx(100 * 1.60 * crit_factor * 100 / (100 + armor))
 
-    # R: 치명타 배율 없이, 치명타 40% + 추가 치명타 피해량 30% -> 22 × (1 + 0.4 × 1.3) = 33.44 -> 33발
+    # R: 치명타 배율 없이, 치명타 확률 40% -> 30발
     r_event = next(e for e in result.events if e.action == "R")
-    assert r_event.damage == pytest.approx((45 + 0.25 * 100) * 33 * 100 / (100 + armor))
+    assert r_event.damage == pytest.approx((45 + 0.25 * 100) * 30 * 100 / (100 + armor))

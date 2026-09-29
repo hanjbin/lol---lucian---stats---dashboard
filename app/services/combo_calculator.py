@@ -11,10 +11,8 @@
   평타 1회 평균 = 일반 × (1 - 치명타확률) + 일반 × 치명타배율 × 치명타확률.
   치명타 배율은 기본 200%, 무한의 대검 보유 시 230%. 패시브 2번째 탄환도 치명타를
   별도로 판정하므로(위키) 같은 기댓값을 적용.
-- R(빛의 심판)은 탄환 자체가 치명타로 터지지 않고, 대신 치명타 확률과 추가 치명타
-  피해량(무한의 대검)에 비례해 발사 수가 늘어나는 방식으로 반영 (위키 V26.01 기준,
-  Skill.hit_count 참고). 그래서 R 피해에는 치명타 배율을 곱하지 않음 - 곱하면 치명타가
-  이중으로 반영됨. Q/W도 치명타 없음.
+- R(빛의 심판)은 치명타 확률만큼 발사 수만 늘어나고(위키 V26.01 기준, Skill.hit_count 참고),
+  탄환 피해에는 치명타 확률·치명타 피해량(무한의 대검 포함)을 적용하지 않음. Q/W도 치명타 없음.
 - 스킬은 모든 타가 명중한다고 가정 (R의 모든 탄환 명중).
 - AP는 0으로 가정해 AP 계수는 무시.
 """
@@ -94,7 +92,6 @@ class _ComboDamageModel:
             self.stats.attack_damage,
             self.stats.bonus_attack_damage,
             self.stats.crit_chance,
-            self.stats.bonus_crit_damage,
         )
         if skill.damage_type == PHYSICAL:
             return damage_after_resist(raw, self.armor)
