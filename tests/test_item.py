@@ -37,6 +37,11 @@ def test_only_doran_items_are_starters():
     assert starters == {"도란의 검", "도란의 활"}
 
 
+def test_level_estimate_counts_only_completed_items():
+    counted = {item.name for item in Item.load_all().values() if item.counts_for_level_estimate}
+    assert counted == {"무한의 대검", "크라켄의 슬레이어", "피바라기", "루난의 허리케인"}
+
+
 def test_infinity_edge_crit_damage_bonus_does_not_stack():
     items = Item.load_all()
     assert items["3031"].crit_damage_bonus == 0.30

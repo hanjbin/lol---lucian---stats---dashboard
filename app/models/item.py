@@ -18,6 +18,12 @@ class Item:
     stats: Dict[str, float] = field(default_factory=dict)
     crit_damage_bonus: float = 0.0  # 추가 치명타 피해량 (무한의 대검 패시브 등)
     is_starter: bool = False  # 도란 아이템 같은 시작 아이템 (상대 레벨 추정 시 제외)
+    is_boots: bool = False  # 신발 (상대 레벨 추정 시 제외)
+
+    @property
+    def counts_for_level_estimate(self) -> bool:
+        # 레벨 추정 매핑은 완성 아이템 기준이라 시작 아이템과 신발은 개수에서 제외
+        return not (self.is_starter or self.is_boots)
 
     @classmethod
     def load_all(cls, path: Optional[Path] = None) -> Dict[str, "Item"]:
@@ -34,6 +40,7 @@ class Item:
                 stats=data.get("stats", {}),
                 crit_damage_bonus=data.get("crit_damage_bonus", 0.0),
                 is_starter=data.get("starter", False),
+                is_boots=data.get("boots", False),
             )
         return items
 

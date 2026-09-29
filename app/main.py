@@ -78,8 +78,9 @@ with st.sidebar:
     )
 
     item_by_name = {item.name: item for item in items.values()}
-    # 레벨 추정 매핑은 완성 아이템 기준이라 도란류 시작 아이템은 개수에서 제외
-    counted_items = sum(not item_by_name[name].is_starter for name in selected_item_names)
+    counted_items = sum(
+        item_by_name[name].counts_for_level_estimate for name in selected_item_names
+    )
     estimated_opponent_level = estimate_level_from_item_count(counted_items)
     manual_level_override = st.checkbox("상대 레벨 직접 입력 (자동 추정 대신 사용)")
     if manual_level_override:
@@ -89,7 +90,7 @@ with st.sidebar:
     else:
         opponent_level = estimated_opponent_level
         st.caption(
-            f"아이템 {counted_items}개(도란 아이템 제외) 기준 자동 추정 레벨: {opponent_level} "
+            f"아이템 {counted_items}개(도란 아이템·신발 제외) 기준 자동 추정 레벨: {opponent_level} "
             "(공식 데이터가 아닌 일반적인 게임 진행 속도 근사치)"
         )
     target_health_percent = st.slider("상대 현재 체력 (%)", 1, 100, 100)
