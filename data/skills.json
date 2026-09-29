@@ -1,0 +1,39 @@
+{
+  "_comment": "루시안 스킬 예시 데이터 (랭크별 배열). 실제 수치는 패치마다 바뀌므로 사용 전 최신 데이터와 대조 필요. AP 계수는 AP 0을 가정해 생략.",
+  "champion": "Lucian",
+  "_skill_order_comment": "레벨 1~18에서 찍는 스킬 순서 (일반적인 Q > E > W 선마). 레벨별 스킬 랭크 계산에 사용.",
+  "skill_order": ["Q", "W", "E", "Q", "Q", "R", "Q", "E", "Q", "E", "R", "E", "E", "W", "W", "R", "W", "W"],
+  "passive": {
+    "name": "빛의 사도",
+    "description": "스킬 사용 후 다음 평타가 2연발로 나가며, 두 번째 탄환은 총 공격력의 일정 비율 피해",
+    "second_shot_total_ad_ratio_by_level": {"1": 0.50, "7": 0.55, "13": 0.60}
+  },
+  "skills": {
+    "Q": {
+      "name": "꿰뚫는 빛",
+      "damage_type": "physical",
+      "base_damage": [85, 115, 145, 175, 205],
+      "bonus_ad_ratio": [0.60, 0.75, 0.90, 1.05, 1.20],
+      "cooldown": [9, 8, 7, 6, 5]
+    },
+    "W": {
+      "name": "열정의 불꽃",
+      "damage_type": "magic",
+      "base_damage": [75, 110, 145, 180, 215],
+      "cooldown": [14, 13, 12, 11, 10]
+    },
+    "E": {
+      "name": "끈질긴 추격",
+      "damage_type": "none",
+      "cooldown": [19, 17.75, 16.5, 15.25, 14]
+    },
+    "R": {
+      "name": "끝장내기",
+      "damage_type": "physical",
+      "base_damage": [15, 30, 45],
+      "total_ad_ratio": [0.25, 0.25, 0.25],
+      "hits": 22,
+      "cooldown": [110, 100, 90]
+    }
+  }
+}

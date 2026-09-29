@@ -6,6 +6,8 @@ from pathlib import Path
 # sys.path에 잡혀 프로젝트 루트의 app 패키지를 찾지 못함 -> 루트를 직접 추가.
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
+from dataclasses import replace
+
 import streamlit as st
 
 from app.models._common import MAX_LEVEL, MIN_LEVEL
@@ -13,16 +15,35 @@ from app.models.champion import Champion
 from app.models.item import Item, ItemBuild, MAX_ITEM_SLOTS
 from app.models.opponent import Opponent, estimate_level_from_item_count
 from app.models.rune import Rune
+from app.models.skill import ChampionKit
+from app.services.combo_calculator import (
+    DPS_COMBO_DURATION,
+    ComboResult,
+    burst_combo,
+    dps_combo,
+)
 from app.services.damage_calculator import (
     auto_attack_dps,
     combine_stats,
     expected_auto_attack_damage,
 )
 
+
+def combo_table(result: ComboResult) -> list:
+    return [
+        {
+            **({"시각(초)": f"{e.time:.2f}"} if e.time is not None else {}),
+            "행동": e.action,
+            "데미지": round(e.damage, 1),
+        }
+        for e in result.events
+    ]
+
 st.set_page_config(page_title="루시안 딜량 계산기", page_icon="🗡️")
 st.title("루시안 딜량 계산기")
 
 champion = Champion.load("Lucian")
+kit = ChampionKit.load()
 items = Item.load_all()
 runes = Rune.load_all()
 opponents = Opponent.load_all()
@@ -45,6 +66,10 @@ with st.sidebar:
             "조건부 룬은 아직 계산에 반영되지 않습니다: "
             + ", ".join(r.name for r in conditional_runes)
         )
+
+    extra_ability_haste = st.number_input(
+        "추가 스킬 가속 (아이템/룬 외)", min_value=0, max_value=300, value=0, step=5
+    )
 
     st.header("상대 설정")
     opponent_id = st.selectbox(
@@ -76,6 +101,7 @@ selected_runes = [rune_by_name[name] for name in selected_rune_names]
 
 champion_stats = champion.stats_at_level(level)
 combined = combine_stats(champion_stats, item_build, selected_runes)
+combined = replace(combined, ability_haste=combined.ability_haste + extra_ability_haste)
 opponent = opponents[opponent_id]
 
 st.subheader("합산 스탯")
@@ -94,6 +120,35 @@ col1.metric("평타 1회 기대 데미지", f"{single_hit:.1f}")
 col2.metric("초당 평타 데미지 (DPS)", f"{dps:.1f}")
 
 st.caption(
-    "치명타 피해 배율은 기본값(175%)만 반영하며, 스킬 데미지·룬 조건부 효과·"
+    "치명타 피해 배율은 기본값(175%)만 반영하며, 룬 조건부 효과·"
     "아이템 특수 효과(무한의 검 치명타 피해 증가 등)는 아직 계산에 포함되지 않습니다."
+)
+
+st.subheader("스킬 콤보")
+ranks = ", ".join(f"{key} {kit.rank_at_level(key, level)}" for key in "QWER")
+st.caption(
+    f"레벨 {level} 스킬 랭크: {ranks} (표준 스킬 트리 기준) · 스킬 가속 {combined.ability_haste:.0f}"
+)
+
+dps_result = dps_combo(kit, level, combined, opponent, opponent_level)
+burst_result = burst_combo(kit, level, combined, opponent, opponent_level)
+
+dps_col, burst_col = st.columns(2)
+with dps_col:
+    st.markdown(f"**DPS 콤보 ({DPS_COMBO_DURATION:.0f}초)**")
+    st.caption("E → 평타 → Q → 평타 → W → 평타 → 이후 평타 + 쿨 돌아오면 스킬 즉시 사용 (R 제외)")
+    st.metric(f"{DPS_COMBO_DURATION:.0f}초간 총 데미지", f"{dps_result.total_damage:.1f}")
+    st.metric("DPS", f"{dps_result.dps:.1f}")
+    with st.expander("타임라인"):
+        st.dataframe(combo_table(dps_result), hide_index=True)
+with burst_col:
+    st.markdown("**폭딜 콤보**")
+    st.caption("E → 평타 → Q → 평타 → W → 평타 → R → 평타 (1회, 시간 제한 없음)")
+    st.metric("총 데미지", f"{burst_result.total_damage:.1f}")
+    with st.expander("시퀀스"):
+        st.dataframe(combo_table(burst_result), hide_index=True)
+
+st.caption(
+    "가정: 스킬 시전 시간·투사체 이동 시간 0, 평타는 공격속도 간격으로 꾸준히 발생, "
+    "스킬 사용 후 다음 평타는 패시브(빛의 사도)로 2연발, 스킬은 전부 명중·치명타 없음, AP 0."
 )

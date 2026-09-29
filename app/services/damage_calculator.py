@@ -17,9 +17,11 @@ class CombinedStats:
     """챔피언 기본 스탯 + 아이템 + 룬(고정 수치)을 합산한 최종 전투 스탯."""
 
     attack_damage: float
+    bonus_attack_damage: float
     attack_speed: float
     crit_chance: float
     life_steal_percent: float
+    ability_haste: float
 
 
 def _rune_flat_stats(runes: Iterable[Rune]) -> Dict[str, float]:
@@ -53,21 +55,26 @@ def combine_stats(
     life_steal = item_totals.get("PercentLifeStealMod", 0.0) + rune_totals.get(
         "PercentLifeStealMod", 0.0
     )
+    ability_haste = item_totals.get("AbilityHaste", 0.0) + rune_totals.get(
+        "AbilityHaste", 0.0
+    )
 
     return CombinedStats(
         attack_damage=champion_stats.attack_damage + flat_ad,
+        bonus_attack_damage=flat_ad,
         attack_speed=champion_stats.attack_speed * (1 + percent_as),
         crit_chance=min(crit_chance, 1.0),
         life_steal_percent=life_steal,
+        ability_haste=ability_haste,
     )
 
 
-def physical_damage_after_resist(raw_damage: float, armor: float) -> float:
-    """물리 방어력 감소 공식. 방어력이 음수(관통 등으로)여도 라이엇 공식대로 처리."""
-    if armor >= 0:
-        mitigation = 100 / (100 + armor)
+def damage_after_resist(raw_damage: float, resist: float) -> float:
+    """방어력/마법저항력 감소 공식 (둘 다 동일). 음수 저항(관통 등)도 라이엇 공식대로 처리."""
+    if resist >= 0:
+        mitigation = 100 / (100 + resist)
     else:
-        mitigation = 2 - 100 / (100 - armor)
+        mitigation = 2 - 100 / (100 - resist)
     return raw_damage * mitigation
 
 
@@ -78,7 +85,7 @@ def expected_auto_attack_damage(
     armor = opponent.armor_at_level(opponent_level)
     crit_multiplier = 1 + stats.crit_chance * (DEFAULT_CRIT_MULTIPLIER - 1)
     raw_damage = stats.attack_damage * crit_multiplier
-    return physical_damage_after_resist(raw_damage, armor)
+    return damage_after_resist(raw_damage, armor)
 
 
 def auto_attack_dps(stats: CombinedStats, opponent: Opponent, opponent_level: int) -> float:

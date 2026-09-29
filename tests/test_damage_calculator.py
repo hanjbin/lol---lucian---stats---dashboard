@@ -4,7 +4,7 @@ from app.models.opponent import Opponent
 from app.models.rune import Rune
 from app.services.damage_calculator import (
     combine_stats,
-    physical_damage_after_resist,
+    damage_after_resist,
     expected_auto_attack_damage,
     auto_attack_dps,
 )
@@ -47,13 +47,13 @@ def test_combine_stats_ignores_conditional_runes():
     assert combined.attack_speed == expected_attack_speed
 
 
-def test_physical_damage_after_resist_reduces_with_positive_armor():
-    assert physical_damage_after_resist(100.0, 0.0) == 100.0
-    assert physical_damage_after_resist(100.0, 100.0) == 50.0
+def test_damage_after_resist_reduces_with_positive_armor():
+    assert damage_after_resist(100.0, 0.0) == 100.0
+    assert damage_after_resist(100.0, 100.0) == 50.0
 
 
-def test_physical_damage_after_resist_amplifies_with_negative_armor():
-    assert physical_damage_after_resist(100.0, -50.0) > 100.0
+def test_damage_after_resist_amplifies_with_negative_armor():
+    assert damage_after_resist(100.0, -50.0) > 100.0
 
 
 def test_expected_auto_attack_damage_uses_opponent_armor():
