@@ -3,13 +3,14 @@ import pytest
 from app.models.champion import Champion
 from app.models.item import Item, ItemBuild
 from app.models.opponent import Opponent
-from app.models.rune import Rune
+from app.models.rune import RuneTree
 from app.services.damage_calculator import (
     combine_stats,
     damage_after_resist,
     expected_auto_attack_damage,
     auto_attack_dps,
 )
+from tests.test_rune import make_page
 
 
 def test_combine_stats_with_no_items_or_runes_matches_base_champion():
@@ -37,16 +38,22 @@ def test_combine_stats_adds_item_totals():
     assert combined.crit_chance == 0.25
 
 
-def test_combine_stats_ignores_conditional_runes():
+def test_combine_stats_applies_stat_runes_only():
     champ = Champion.load("Lucian")
-    stats = champ.stats_at_level(1)
-    runes = Rune.load_all()  # 기민한 발놀림(flat) + 정복자/일격필살(conditional)
+    stats = champ.stats_at_level(18)
+    page = make_page(
+        RuneTree.load_all(), "Precision", "PressTheAttack",
+        ["Triumph", "LegendAlacrity", "CutDown"],
+        "Domination", ["SuddenImpact", "TreasureHunter"],
+    )
 
-    combined = combine_stats(stats, ItemBuild(), runes)
+    combined = combine_stats(stats, ItemBuild(), page)
 
-    # 정복자/일격필살은 조건부라 반영되지 않고, 기민한 발놀림의 공속만 반영됨
-    expected_attack_speed = stats.attack_speed * (1 + 0.08)
-    assert combined.attack_speed == expected_attack_speed
+    # 전설: 민첩함 최대 스택 = 3% + 1.5% × 10 = 18%. 집중 공격 등 조건부 룬은 콤보에서만 반영.
+    assert combined.bonus_attack_speed == pytest.approx(0.18)
+    assert combined.attack_speed == pytest.approx(stats.attack_speed * 1.18)
+    assert combined.attack_damage == stats.attack_damage
+    assert combined.base_attack_speed == pytest.approx(stats.attack_speed)
 
 
 def test_damage_after_resist_reduces_with_positive_armor():

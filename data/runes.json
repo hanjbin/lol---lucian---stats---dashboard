@@ -1,47 +1,127 @@
 {
-  "_comment": "Data Dragon runesReforged.json을 단순화한 예시 데이터. type=flat_stat은 고정 수치 보너스, type=conditional은 조건부 효과(발동 조건/수치는 참고용이며 damage_calculator에서 아직 계산에 반영하지 않음 - TODO).",
-  "runes": [
+  "_comment": "Data Dragon 16.19.1 runesReforged.json의 트리/슬롯 구조, 한글 이름, 툴팁 수치를 기준으로 한 룬 데이터. 루시안에게 의미 있는(실전 채용이 잦은) 룬만 골라 넣었고, 선택 이유와 효과 구현은 app/services/rune_effects.py 주석 참고. [a, b] 형태 수치는 레벨 1~18에 걸쳐 a~b로 변하는 값(선형 보간 가정). effect: stat=상시 스탯, combo=콤보 중 발동 조건 판단, none=데미지 계산과 무관.",
+  "version": "16.19.1",
+  "trees": [
     {
-      "id": 8021,
-      "key": "FleetFootwork",
-      "name": "기민한 발놀림",
-      "tree": "Precision",
-      "type": "flat_stat",
-      "stats": {
-        "PercentAttackSpeedMod": 0.08
-      },
-      "condition": null,
-      "note": "실제로는 이동 시 스택을 쌓아 체력/마나 회복 및 짧은 이동속도 증가 효과. 여기서는 고정 공격속도 보너스로 근사."
+      "id": 8000,
+      "key": "Precision",
+      "name": "정밀",
+      "primary": true,
+      "secondary": true,
+      "slots": [
+        [
+          {"id": 8005, "key": "PressTheAttack", "name": "집중 공격", "effect": "combo",
+           "params": {"attacks_required": 3, "damage": [40, 160], "damage_amp": 0.08}},
+          {"id": 8008, "key": "LethalTempo", "name": "치명적 속도", "effect": "combo",
+           "params": {"attack_speed_per_stack": 0.04, "max_stacks": 6, "max_stack_damage": [6, 24]}},
+          {"id": 8021, "key": "FleetFootwork", "name": "기민한 발놀림", "effect": "none",
+           "params": {}},
+          {"id": 8010, "key": "Conqueror", "name": "정복자", "effect": "combo",
+           "params": {"stacks_per_attack": 1, "stacks_per_ability": 2, "max_stacks": 12, "adaptive_force_per_stack": [1.8, 4.0]}}
+        ],
+        [
+          {"id": 9111, "key": "Triumph", "name": "승전보", "effect": "none", "params": {}},
+          {"id": 8009, "key": "PresenceOfMind", "name": "침착", "effect": "none", "params": {}}
+        ],
+        [
+          {"id": 9104, "key": "LegendAlacrity", "name": "전설: 민첩함", "effect": "stat",
+           "params": {"base_attack_speed": 0.03, "attack_speed_per_stack": 0.015, "max_stacks": 10}},
+          {"id": 9105, "key": "LegendHaste", "name": "전설: 가속", "effect": "stat",
+           "params": {"ability_haste_per_stack": 1.5, "max_stacks": 10}},
+          {"id": 9103, "key": "LegendBloodline", "name": "전설: 핏빛 길", "effect": "stat",
+           "params": {"life_steal_per_stack": 0.0045, "max_stacks": 15}}
+        ],
+        [
+          {"id": 8014, "key": "CoupDeGrace", "name": "최후의 일격", "effect": "combo",
+           "params": {"damage_amp": 0.08, "target_health_below": 0.40}},
+          {"id": 8017, "key": "CutDown", "name": "체력차 극복", "effect": "combo",
+           "params": {"damage_amp": 0.08, "target_health_above": 0.60}}
+        ]
+      ]
     },
     {
-      "id": 8010,
-      "key": "Conqueror",
-      "name": "정복자",
-      "tree": "Precision",
-      "type": "conditional",
-      "stats": {},
-      "condition": {
-        "description": "챔피언 공격/스킬 적중 시 스택 축적 (최대 5스택), 만스택 시 적응형 능력치 증가",
-        "max_stacks": 5,
-        "per_stack_adaptive_force": 1.8,
-        "max_stack_adaptive_force": 9.0
-      },
-      "note": "스택 로직은 damage_calculator에서 구현 예정."
+      "id": 8100,
+      "key": "Domination",
+      "name": "지배",
+      "primary": true,
+      "secondary": true,
+      "slots": [
+        [
+          {"id": 8112, "key": "Electrocute", "name": "감전", "effect": "combo",
+           "params": {"hits_required": 3, "window_seconds": 3, "damage": [70, 240], "bonus_ad_ratio": 0.1, "cooldown": 20}},
+          {"id": 9923, "key": "HailOfBlades", "name": "칼날비", "effect": "combo",
+           "params": {"attack_speed": 0.60, "attacks": 3, "max_gap_seconds": 3, "on_hit_true_damage": [2, 20], "bonus_ad_ratio": 0.12, "cooldown": 10}}
+        ],
+        [
+          {"id": 8143, "key": "SuddenImpact", "name": "돌발 일격", "effect": "combo",
+           "params": {"true_damage": [20, 80], "duration_seconds": 4, "cooldown": 10}},
+          {"id": 8139, "key": "TasteOfBlood", "name": "피의 맛", "effect": "none", "params": {}}
+        ],
+        [
+          {"id": 8137, "key": "SixthSense", "name": "육감", "effect": "none", "params": {}},
+          {"id": 8140, "key": "GrislyMementos", "name": "섬뜩한 기념품", "effect": "none", "params": {}}
+        ],
+        [
+          {"id": 8135, "key": "TreasureHunter", "name": "보물 사냥꾼", "effect": "none", "params": {}},
+          {"id": 8106, "key": "UltimateHunter", "name": "궁극의 사냥꾼", "effect": "none", "params": {}}
+        ]
+      ]
     },
     {
-      "id": 9923,
-      "key": "SuddenImpact",
-      "name": "일격필살",
-      "tree": "Domination",
-      "type": "conditional",
-      "stats": {},
-      "condition": {
-        "description": "은신 또는 돌진기(루시안 E) 사용 후 4초간 다음 공격/스킬에 관통력 증가",
-        "duration_seconds": 4,
-        "lethality": 10.0,
-        "magic_penetration_percent": 7.5
-      },
-      "note": "지속시간/발동 조건 추적 로직은 damage_calculator에서 구현 예정."
+      "id": 8200,
+      "key": "Sorcery",
+      "name": "마법",
+      "primary": true,
+      "secondary": false,
+      "slots": [
+        [
+          {"id": 8229, "key": "ArcaneComet", "name": "신비로운 유성", "effect": "combo",
+           "params": {"damage": [15, 100], "bonus_ad_ratio": 0.1, "cooldown": [20, 8]}},
+          {"id": 8230, "key": "PhaseRush", "name": "폭풍전사의 포효", "effect": "none", "params": {}}
+        ],
+        [
+          {"id": 8224, "key": "NullifyingOrb", "name": "액시옴 비전 마법사", "effect": "combo",
+           "params": {"ultimate_damage_amp": 0.12}},
+          {"id": 8226, "key": "ManaflowBand", "name": "마나순환 팔찌", "effect": "none", "params": {}}
+        ],
+        [
+          {"id": 8210, "key": "Transcendence", "name": "깨달음", "effect": "stat",
+           "params": {"ability_haste_by_level": [[5, 5], [8, 5]]}},
+          {"id": 8233, "key": "AbsoluteFocus", "name": "절대 집중", "effect": "stat",
+           "params": {"attack_damage": [1.8, 18]}}
+        ],
+        [
+          {"id": 8237, "key": "Scorch", "name": "주문 작열", "effect": "combo",
+           "params": {"magic_damage": [20, 40], "cooldown": 10}},
+          {"id": 8232, "key": "Waterwalking", "name": "물 위를 걷는 자", "effect": "none", "params": {}}
+        ]
+      ]
+    },
+    {
+      "id": 8300,
+      "key": "Inspiration",
+      "name": "영감",
+      "primary": true,
+      "secondary": true,
+      "slots": [
+        [
+          {"id": 8369, "key": "FirstStrike", "name": "선제공격", "effect": "combo",
+           "params": {"damage_amp": 0.07, "duration_seconds": 3}}
+        ],
+        [
+          {"id": 8304, "key": "MagicalFootwear", "name": "마법의 신발", "effect": "none", "params": {}},
+          {"id": 8321, "key": "CashBack", "name": "환급", "effect": "none", "params": {}}
+        ],
+        [
+          {"id": 8345, "key": "BiscuitDelivery", "name": "비스킷 배달", "effect": "none", "params": {}},
+          {"id": 8352, "key": "TimeWarpTonic", "name": "시간 왜곡 물약", "effect": "none", "params": {}}
+        ],
+        [
+          {"id": 8347, "key": "CosmicInsight", "name": "우주적 통찰력", "effect": "none", "params": {}},
+          {"id": 8316, "key": "JackOfAllTrades", "name": "다재다능", "effect": "stat",
+           "params": {"ability_haste_per_stack": 1, "adaptive_force_by_stacks": [[5, 8], [10, 20]]}}
+        ]
+      ]
     }
   ]
 }
