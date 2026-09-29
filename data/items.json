@@ -1,23 +1,35 @@
 {
-  "_comment": "Data Dragon item.json 형식(stats 키 이름 포함)을 참고한 예시 데이터. crit_damage_bonus는 Data Dragon stats에 없는 패시브 효과라 별도 필드로 둠(추가 치명타 피해량, 0.30 = +30%p). 도란 아이템과 2티어 신발(광전사의 군화 포함)은 Data Dragon 16.19.1 기준. Data Dragon stats에는 없고 설명에만 있는 스탯(AbilityHaste, PercentOmnivampMod, FlatMagicPenetrationMod, PercentTenacityMod)은 다재다능 스택 계산에 필요해 설명 수치로 추가함. starter=true는 시작 아이템(도란류), boots=true는 신발로, 둘 다 상대 레벨 추정의 아이템 개수에서 제외. 그 외 패시브/액티브 효과(예: 크라켄의 슬레이어 고정 피해, 판금 장화 피해 감소)는 아직 모델링하지 않음 - TODO.",
+  "_comment": "Data Dragon 16.19.1 item.json 기준 아이템 데이터 (stats 키 이름도 Data Dragon 형식). crit_damage_bonus는 Data Dragon stats에 없는 패시브 효과라 별도 필드로 둠(추가 치명타 피해량, 0.30 = +30%p). Data Dragon stats에는 없고 설명에만 있는 스탯(AbilityHaste, PercentOmnivampMod, FlatMagicPenetrationMod, PercentTenacityMod)은 다재다능 스택 계산과 쿨타임에 필요해 설명 수치로 추가함. passive는 콤보 데미지에 영향을 주는 고유 효과로, 위키 기준 원거리 수치 (구현은 app/services/item_effects.py). [a, b]는 레벨 1~18 선형 보간. starter=true는 시작 아이템(도란류), boots=true는 신발로, 둘 다 상대 레벨 추정의 아이템 개수에서 제외. 1:1 데미지와 무관한 효과(루난의 허리케인 추가 화살, 피바라기 보호막, 판금 장화 피해 감소, 이동 속도 등)는 모델링하지 않음.",
   "type": "item",
-  "version": "example-14.19.1",
+  "version": "16.19.1",
   "data": {
     "3031": {
       "name": "무한의 대검",
       "plaintext": "치명타 피해량 증가 아이템",
       "stats": {
-        "FlatPhysicalDamageMod": 65.0,
+        "FlatPhysicalDamageMod": 75.0,
         "FlatCritChanceMod": 0.25
       },
       "crit_damage_bonus": 0.3
     },
     "6672": {
-      "name": "크라켄의 슬레이어",
-      "plaintext": "신화급 공격속도 아이템",
+      "name": "크라켄 학살자",
+      "plaintext": "공격력/공격속도, 3번째 공격마다 추가 피해",
       "stats": {
-        "FlatPhysicalDamageMod": 40.0,
-        "PercentAttackSpeedMod": 0.3
+        "FlatPhysicalDamageMod": 45.0,
+        "PercentAttackSpeedMod": 0.4,
+        "PercentMovementSpeedMod": 0.04
+      },
+      "passive": {
+        "key": "BringItDown",
+        "name": "크라켄 학살자",
+        "attacks_required": 3,
+        "stack_duration_seconds": 4,
+        "damage": [
+          120,
+          168
+        ],
+        "missing_health_amp": 0.75
       }
     },
     "1055": {
@@ -107,18 +119,51 @@
       "name": "피바라기",
       "plaintext": "생명흡수 아이템",
       "stats": {
-        "FlatPhysicalDamageMod": 55.0,
-        "FlatCritChanceMod": 0.2,
-        "PercentLifeStealMod": 0.18
+        "FlatPhysicalDamageMod": 80.0,
+        "PercentLifeStealMod": 0.15
       }
     },
     "3085": {
       "name": "루난의 허리케인",
-      "plaintext": "추가 화살 발사 (미구현)",
+      "plaintext": "주변 적 2명에게 추가 화살 (1:1 계산에는 영향 없음)",
       "stats": {
-        "FlatPhysicalDamageMod": 30.0,
-        "PercentAttackSpeedMod": 0.35,
-        "FlatCritChanceMod": 0.2
+        "PercentAttackSpeedMod": 0.4,
+        "FlatCritChanceMod": 0.25,
+        "PercentMovementSpeedMod": 0.05
+      }
+    },
+    "3078": {
+      "name": "삼위일체",
+      "plaintext": "스킬 사용 후 다음 공격에 추가 피해 (주문검)",
+      "stats": {
+        "FlatPhysicalDamageMod": 36.0,
+        "PercentAttackSpeedMod": 0.3,
+        "FlatHPPoolMod": 333.0,
+        "AbilityHaste": 15.0
+      },
+      "passive": {
+        "key": "Spellblade",
+        "name": "주문검 (삼위일체)",
+        "base_ad_ratio": 2.0,
+        "cooldown": 1.5,
+        "duration_seconds": 10
+      }
+    },
+    "3181": {
+      "name": "선체파괴자",
+      "plaintext": "5번째 공격마다 추가 피해",
+      "stats": {
+        "FlatPhysicalDamageMod": 40.0,
+        "FlatHPPoolMod": 500.0,
+        "PercentMovementSpeedMod": 0.04
+      },
+      "passive": {
+        "key": "Skipper",
+        "name": "선체파괴자",
+        "attacks_required": 5,
+        "stack_duration_seconds": 10,
+        "base_ad_ratio": 0.84,
+        "target_max_health_ratio": 0.035
       }
     }
   }

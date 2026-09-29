@@ -1,9 +1,11 @@
 {
-  "_comment": "상대 챔피언은 전체 스탯 대신 방어력/마법저항력만 레벨별로 단순 관리.",
+  "_comment": "상대 챔피언은 전체 스탯 대신 체력/방어력/마법저항력만 레벨별로 단순 관리. 수치는 예시(체력은 선체파괴자처럼 대상 최대 체력 비례 피해 계산용).",
   "opponents": [
     {
       "id": "generic_squishy",
       "name": "평범한 방어력 챔피언 (예시)",
+      "health": 630.0,
+      "health_per_level": 105.0,
       "armor": 30.0,
       "armor_per_level": 4.5,
       "magic_resist": 30.0,
@@ -12,6 +14,8 @@
     {
       "id": "generic_tank",
       "name": "탱커 챔피언 (예시)",
+      "health": 680.0,
+      "health_per_level": 115.0,
       "armor": 40.0,
       "armor_per_level": 5.5,
       "magic_resist": 32.0,

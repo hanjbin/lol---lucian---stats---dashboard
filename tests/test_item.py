@@ -7,7 +7,7 @@ def test_load_all_items():
     items = Item.load_all()
     assert "3031" in items
     assert items["3031"].name == "무한의 대검"
-    assert items["3031"].attack_damage == 65.0
+    assert items["3031"].attack_damage == 75.0
     assert items["3031"].crit_chance == 0.25
 
 
@@ -18,8 +18,8 @@ def test_item_build_aggregates_stats():
     build.add(items["3072"])  # 피바라기
 
     totals = build.total_stats()
-    assert totals["FlatPhysicalDamageMod"] == 65.0 + 55.0
-    assert totals["FlatCritChanceMod"] == 0.25 + 0.20
+    assert totals["FlatPhysicalDamageMod"] == 75.0 + 80.0
+    assert totals["FlatCritChanceMod"] == 0.25  # 피바라기는 16.19.1 기준 치명타 없음
 
 
 def test_item_build_enforces_max_slots():
@@ -39,7 +39,7 @@ def test_only_doran_items_are_starters():
 
 def test_level_estimate_counts_only_completed_items():
     counted = {item.name for item in Item.load_all().values() if item.counts_for_level_estimate}
-    assert counted == {"무한의 대검", "크라켄의 슬레이어", "피바라기", "루난의 허리케인"}
+    assert counted == {"무한의 대검", "크라켄 학살자", "피바라기", "루난의 허리케인", "삼위일체", "선체파괴자"}
 
 
 def test_infinity_edge_crit_damage_bonus_does_not_stack():

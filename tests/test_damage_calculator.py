@@ -30,11 +30,11 @@ def test_combine_stats_adds_item_totals():
 
     items = Item.load_all()
     build = ItemBuild()
-    build.add(items["3031"])  # 무한의 대검: AD 65, 치명타 확률 0.25
+    build.add(items["3031"])  # 무한의 대검: AD 75, 치명타 확률 0.25
 
     combined = combine_stats(stats, build)
 
-    assert combined.attack_damage == stats.attack_damage + 65.0
+    assert combined.attack_damage == stats.attack_damage + 75.0
     assert combined.crit_chance == 0.25
 
 

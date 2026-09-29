@@ -19,6 +19,8 @@ class Item:
     crit_damage_bonus: float = 0.0  # 추가 치명타 피해량 (무한의 대검 패시브 등)
     is_starter: bool = False  # 도란 아이템 같은 시작 아이템 (상대 레벨 추정 시 제외)
     is_boots: bool = False  # 신발 (상대 레벨 추정 시 제외)
+    # 콤보 데미지에 영향을 주는 고유 효과 (services/item_effects.py에서 key로 구현을 찾음)
+    passive: Optional[dict] = field(default=None, hash=False, compare=False)
 
     @property
     def counts_for_level_estimate(self) -> bool:
@@ -41,6 +43,7 @@ class Item:
                 crit_damage_bonus=data.get("crit_damage_bonus", 0.0),
                 is_starter=data.get("starter", False),
                 is_boots=data.get("boots", False),
+                passive=data.get("passive"),
             )
         return items
 

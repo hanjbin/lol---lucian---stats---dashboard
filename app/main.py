@@ -94,7 +94,10 @@ with st.sidebar:
             "(공식 데이터가 아닌 일반적인 게임 진행 속도 근사치)"
         )
     target_health_percent = st.slider("상대 현재 체력 (%)", 1, 100, 100)
-    st.caption("최후의 일격(40% 미만)·체력차 극복(60% 초과) 발동 판정용. 콤보 중에는 변하지 않는다고 가정.")
+    st.caption(
+        "최후의 일격(40% 미만)·체력차 극복(60% 초과) 발동 판정과 크라켄 학살자 피해 증가(잃은 체력 비례)에 사용. "
+        "콤보 중에는 변하지 않는다고 가정."
+    )
 
     st.header("룬")
     primary_tree = st.selectbox(
@@ -168,7 +171,8 @@ col2.metric("초당 평타 데미지 (DPS)", f"{dps:.1f}")
 st.caption(
     "치명타는 확률 기반 기댓값으로 계산합니다 (치명타 피해량 기본 200%, 무한의 대검 보유 시 230%). "
     "이 섹션에는 상시 스탯 룬(전설 룬 등)만 반영되고, 조건부 룬(집중 공격, 감전 등)은 "
-    "아래 스킬 콤보에서 발동 조건을 판단해 반영합니다. 그 외 아이템 특수 효과는 미포함."
+    "아래 스킬 콤보에서 발동 조건을 판단해 반영합니다. 아이템 고유 효과(크라켄 학살자, 삼위일체 주문검, "
+    "선체파괴자)도 스킬 콤보에서만 반영됩니다."
 )
 
 st.subheader("스킬 콤보")
@@ -179,10 +183,10 @@ st.caption(
 
 target_health_ratio = target_health_percent / 100
 dps_result = dps_combo(
-    kit, level, combined, opponent, opponent_level, rune_page, target_health_ratio
+    kit, level, combined, opponent, opponent_level, rune_page, target_health_ratio, item_build
 )
 burst_result = burst_combo(
-    kit, level, combined, opponent, opponent_level, rune_page, target_health_ratio
+    kit, level, combined, opponent, opponent_level, rune_page, target_health_ratio, item_build
 )
 
 dps_col, burst_col = st.columns(2)
@@ -211,5 +215,6 @@ st.caption(
     "평타는 치명타 기댓값 적용, R은 치명타 확률만큼 발사 수만 증가하고 "
     "탄환에 치명타 피해는 적용하지 않음. 룬 발동 피해는 타임라인에 룬 이름으로 표시되며, "
     "룬 관련 가정(레벨 비례 수치 선형 보간, 전설 룬 최대 스택, 패시브 2연발은 탄환마다 공격 1회 등)은 "
-    "app/services/rune_effects.py 참고."
+    "app/services/rune_effects.py 참고. 아이템 고유 효과 가정(원거리 수치, 2연발은 탄환마다 적중 1회, "
+    "폭딜 콤보에서 주문검 1회 등)은 app/services/item_effects.py 참고."
 )

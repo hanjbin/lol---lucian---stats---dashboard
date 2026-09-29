@@ -120,13 +120,13 @@ def test_jack_of_all_trades_counts_distinct_item_stats(trees):
                      "Inspiration", ["MagicalFootwear", "JackOfAllTrades"])
     items = Item.load_all()
     build = ItemBuild()
-    for item_id in ("3031", "6672", "3072"):  # 공격력/치명타, 공격력/공속, 공격력/치명타/생흡
+    for item_id in ("3031", "6672", "3072"):  # 무한의 대검, 크라켄 학살자, 피바라기
         build.add(items[item_id])
 
     bonus = rune_stat_bonus(page, LEVEL, build)
-    # 공격력, 치명타 확률, 치명타 피해량(무한의 대검), 공속, 생흡 = 5종
-    # -> 스킬 가속 5 + 전설: 가속 15, 적응형 능력치 8 = 공격력 4.8
-    assert bonus.ability_haste == pytest.approx(5 + 15)
+    # 공격력, 치명타 확률, 치명타 피해량(무한의 대검), 공속, 이동 속도 %(크라켄), 생흡 = 6종
+    # -> 스킬 가속 6 + 전설: 가속 15, 적응형 능력치 8 = 공격력 4.8
+    assert bonus.ability_haste == pytest.approx(6 + 15)
     assert bonus.attack_damage == pytest.approx(4.8)
 
 

@@ -40,6 +40,8 @@ def estimate_level_from_item_count(item_count: int) -> int:
 class Opponent:
     id: str
     name: str
+    health: float
+    health_per_level: float
     armor: float
     armor_per_level: float
     magic_resist: float
@@ -55,6 +57,8 @@ class Opponent:
             o["id"]: cls(
                 id=o["id"],
                 name=o["name"],
+                health=o["health"],
+                health_per_level=o["health_per_level"],
                 armor=o["armor"],
                 armor_per_level=o["armor_per_level"],
                 magic_resist=o["magic_resist"],
@@ -69,6 +73,9 @@ class Opponent:
         if opponent_id not in opponents:
             raise KeyError(f"'{opponent_id}' 상대 정보를 {path or DEFAULT_OPPONENTS_PATH}에서 찾을 수 없습니다.")
         return opponents[opponent_id]
+
+    def health_at_level(self, level: int) -> float:
+        return self.health + self.health_per_level * growth_factor(level)
 
     def armor_at_level(self, level: int) -> float:
         return self.armor + self.armor_per_level * growth_factor(level)

@@ -163,7 +163,7 @@ def rune_stat_bonus(page: Optional[RunePage], level: int, item_build: ItemBuild)
 
 
 @dataclass(frozen=True)
-class RuneProc:
+class DamageProc:
     name: str
     damage: float  # 저항/증폭 적용 후 최종 피해
 
@@ -211,12 +211,12 @@ class RuneCombat:
     def _ready(self, key: str, t: float) -> bool:
         return t >= self._ready_at.get(key, float("-inf"))
 
-    def _proc(self, key: str, raw: float, damage_type: str, t: float) -> RuneProc:
+    def _proc(self, key: str, raw: float, damage_type: str, t: float) -> DamageProc:
         if damage_type == PHYSICAL:
             raw = damage_after_resist(raw, self.armor)
         elif damage_type == MAGIC:
             raw = damage_after_resist(raw, self.magic_resist)
-        return RuneProc(self._names[key], raw * self.damage_multiplier(t))
+        return DamageProc(self._names[key], raw * self.damage_multiplier(t))
 
     def _start_combat(self, t: float) -> None:
         p = self._p("FirstStrike")
@@ -270,10 +270,10 @@ class RuneCombat:
         if p and skill_key == "E":
             self._dash_until = t + p["duration_seconds"]
 
-    def before_attack(self, t: float) -> List[RuneProc]:
+    def before_attack(self, t: float) -> List[DamageProc]:
         """기본 공격 탄환 1발의 피해 직전: 공격 시 효과와 스택/버프 갱신."""
         self._start_combat(t)
-        procs: List[RuneProc] = []
+        procs: List[DamageProc] = []
 
         p = self._p("LethalTempo")
         if p:
@@ -306,9 +306,9 @@ class RuneCombat:
         self._last_attack_time = t
         return procs
 
-    def after_attack(self, t: float) -> List[RuneProc]:
+    def after_attack(self, t: float) -> List[DamageProc]:
         """기본 공격 탄환 1발 적중 후."""
-        procs: List[RuneProc] = []
+        procs: List[DamageProc] = []
         p = self._p("PressTheAttack")
         if p and not self._exposed:
             self._attack_streak += 1
@@ -323,7 +323,7 @@ class RuneCombat:
     def before_ability(self, t: float) -> None:
         self._start_combat(t)
 
-    def after_ability(self, t: float) -> List[RuneProc]:
+    def after_ability(self, t: float) -> List[DamageProc]:
         """피해를 주는 스킬(Q/W/R) 적중 후."""
         procs = self._after_any_hit(t)
         bonus_ad = self.stats.bonus_attack_damage + self.bonus_attack_damage()
@@ -342,8 +342,8 @@ class RuneCombat:
         self._add_conqueror_stacks("stacks_per_ability")
         return procs
 
-    def _after_any_hit(self, t: float) -> List[RuneProc]:
-        procs: List[RuneProc] = []
+    def _after_any_hit(self, t: float) -> List[DamageProc]:
+        procs: List[DamageProc] = []
         bonus_ad = self.stats.bonus_attack_damage + self.bonus_attack_damage()
 
         p = self._p("Electrocute")
