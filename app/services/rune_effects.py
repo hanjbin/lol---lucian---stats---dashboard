@@ -64,6 +64,7 @@
   슬롯 3
   - 우주적 통찰력 (none): 소환사 주문/아이템 가속이라 스킬 쿨타임과 무관.
   - 다재다능 (stat): 아이템 스탯 종류당 스킬 가속 +1, 5/10종에서 적응형 능력치 +8/+20.
+    도란 아이템/2티어 신발의 이동 속도·체력·모든 피해 흡혈 등도 스탯 종류로 셈 (data/items.json).
 
 [결의] 트리는 요구사항 범위 밖이라 제외.
 
@@ -141,8 +142,12 @@ def rune_stat_bonus(page: Optional[RunePage], level: int, item_build: ItemBuild)
         elif rune.key == "AbsoluteFocus":
             ad += level_scaled(p["attack_damage"], level)
         elif rune.key == "JackOfAllTrades":
-            # 아이템에서 얻은 서로 다른 스탯 종류 수 = 스택
-            stacks = len({stat for item in item_build.items for stat, v in item.stats.items() if v})
+            # 아이템에서 얻은 서로 다른 스탯 종류 수 = 스택. 위키 기준 이동 속도, 체력, 모든 피해 흡혈,
+            # 강인함, 마법 관통력, 치명타 피해량 등도 포함 (적응형 능력치, 물리 흡혈, 둔화 저항은 제외).
+            stat_types = {stat for item in item_build.items for stat, v in item.stats.items() if v}
+            if item_build.crit_damage_bonus():
+                stat_types.add("CritDamage")
+            stacks = len(stat_types)
             haste += stacks * p["ability_haste_per_stack"]
             force = max((f for need, f in p["adaptive_force_by_stacks"] if stacks >= need), default=0)
             ad += force * ADAPTIVE_FORCE_TO_AD

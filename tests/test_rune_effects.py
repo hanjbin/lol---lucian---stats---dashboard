@@ -1,11 +1,12 @@
 import pytest
 
+from app.models.champion import Champion
 from app.models.item import Item, ItemBuild
 from app.models.opponent import Opponent
 from app.models.rune import RuneTree
 from app.models.skill import ChampionKit
 from app.services.combo_calculator import AUTO_ATTACK, EMPOWERED_AUTO_ATTACK, burst_combo, dps_combo
-from app.services.damage_calculator import CombinedStats
+from app.services.damage_calculator import CombinedStats, combine_stats
 from app.services.rune_effects import level_scaled, rune_stat_bonus
 from tests.test_rune import make_page
 
@@ -123,9 +124,32 @@ def test_jack_of_all_trades_counts_distinct_item_stats(trees):
         build.add(items[item_id])
 
     bonus = rune_stat_bonus(page, LEVEL, build)
-    # 스탯 종류 4개 -> 스킬 가속 4 (-> 5종 미만이라 적응형 능력치 없음) + 전설: 가속 15
-    assert bonus.ability_haste == pytest.approx(4 + 15)
-    assert bonus.attack_damage == 0
+    # 공격력, 치명타 확률, 치명타 피해량(무한의 대검), 공속, 생흡 = 5종
+    # -> 스킬 가속 5 + 전설: 가속 15, 적응형 능력치 8 = 공격력 4.8
+    assert bonus.ability_haste == pytest.approx(5 + 15)
+    assert bonus.attack_damage == pytest.approx(4.8)
+
+
+def test_jack_of_all_trades_reaches_ten_stacks_with_starter_items_and_boots(trees):
+    page = make_page(trees, "Precision", "FleetFootwork", ["Triumph", "LegendAlacrity", "CutDown"],
+                     "Inspiration", ["MagicalFootwear", "JackOfAllTrades"])
+    items = Item.load_all()
+    build = ItemBuild()
+    # 도란의 검(공격력/체력/흡혈), 도란의 활(공격력/공속/흡혈), 헤르메스의 발걸음(이속/마저/강인함),
+    # 무한의 대검(공격력/치명타/치명타 피해량), 피바라기(공격력/치명타/생흡)
+    for item_id in ("1055", "1086", "3111", "3031", "3072"):
+        build.add(items[item_id])
+
+    bonus = rune_stat_bonus(page, LEVEL, build)
+    assert bonus.ability_haste == pytest.approx(10)
+    assert bonus.attack_damage == pytest.approx(20 * 0.6)
+
+
+def test_ionian_boots_ability_haste_reaches_combined_stats():
+    build = ItemBuild()
+    build.add(Item.load_all()["3158"])
+    combined = combine_stats(Champion.load("Lucian").stats_at_level(LEVEL), build)
+    assert combined.ability_haste == 10
 
 
 # --- 조건부 룬 (콤보 중 발동) ------------------------------------------------------------

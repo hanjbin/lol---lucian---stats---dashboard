@@ -1,5 +1,5 @@
 {
-  "_comment": "Data Dragon item.json 형식(stats 키 이름 포함)을 참고한 예시 데이터. crit_damage_bonus는 Data Dragon stats에 없는 패시브 효과라 별도 필드로 둠(추가 치명타 피해량, 0.30 = +30%p). 그 외 패시브/액티브 효과(예: 크라켄의 슬레이어 고정 피해)는 아직 모델링하지 않음 - TODO.",
+  "_comment": "Data Dragon item.json 형식(stats 키 이름 포함)을 참고한 예시 데이터. crit_damage_bonus는 Data Dragon stats에 없는 패시브 효과라 별도 필드로 둠(추가 치명타 피해량, 0.30 = +30%p). 도란 아이템과 2티어 신발(광전사의 군화 포함)은 Data Dragon 16.19.1 기준. Data Dragon stats에는 없고 설명에만 있는 스탯(AbilityHaste, PercentOmnivampMod, FlatMagicPenetrationMod, PercentTenacityMod)은 다재다능 스택 계산에 필요해 설명 수치로 추가함. 그 외 패시브/액티브 효과(예: 크라켄의 슬레이어 고정 피해, 판금 장화 피해 감소)는 아직 모델링하지 않음 - TODO.",
   "type": "item",
   "version": "example-14.19.1",
   "data": {
@@ -20,11 +20,78 @@
         "PercentAttackSpeedMod": 0.30
       }
     },
+    "1055": {
+      "name": "도란의 검",
+      "plaintext": "공격력/체력 시작 아이템",
+      "stats": {
+        "FlatPhysicalDamageMod": 10.0,
+        "FlatHPPoolMod": 80.0,
+        "PercentOmnivampMod": 0.025
+      }
+    },
+    "1086": {
+      "name": "도란의 활",
+      "plaintext": "공격력/공격속도 시작 아이템",
+      "stats": {
+        "FlatPhysicalDamageMod": 8.0,
+        "PercentAttackSpeedMod": 0.15,
+        "PercentOmnivampMod": 0.015
+      }
+    },
     "3006": {
       "name": "광전사의 군화",
       "plaintext": "공격속도 신발",
       "stats": {
-        "PercentAttackSpeedMod": 0.35
+        "PercentAttackSpeedMod": 0.30,
+        "FlatMovementSpeedMod": 45.0
+      }
+    },
+    "3008": {
+      "name": "탐욕의 군화",
+      "plaintext": "모든 피해 흡혈 신발",
+      "stats": {
+        "FlatMovementSpeedMod": 45.0,
+        "PercentOmnivampMod": 0.04
+      }
+    },
+    "3009": {
+      "name": "신속의 장화",
+      "plaintext": "이동 속도 신발",
+      "stats": {
+        "FlatMovementSpeedMod": 55.0
+      }
+    },
+    "3020": {
+      "name": "마법사의 신발",
+      "plaintext": "마법 관통력 신발",
+      "stats": {
+        "FlatMovementSpeedMod": 45.0,
+        "FlatMagicPenetrationMod": 12.0
+      }
+    },
+    "3047": {
+      "name": "판금 장화",
+      "plaintext": "방어력 신발",
+      "stats": {
+        "FlatMovementSpeedMod": 45.0,
+        "FlatArmorMod": 25.0
+      }
+    },
+    "3111": {
+      "name": "헤르메스의 발걸음",
+      "plaintext": "마법 저항력/강인함 신발",
+      "stats": {
+        "FlatMovementSpeedMod": 45.0,
+        "FlatSpellBlockMod": 20.0,
+        "PercentTenacityMod": 0.30
+      }
+    },
+    "3158": {
+      "name": "명석함의 아이오니아 장화",
+      "plaintext": "스킬 가속 신발",
+      "stats": {
+        "FlatMovementSpeedMod": 45.0,
+        "AbilityHaste": 10.0
       }
     },
     "3072": {
