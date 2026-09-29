@@ -11,7 +11,7 @@ import streamlit as st
 from app.models._common import MAX_LEVEL, MIN_LEVEL
 from app.models.champion import Champion
 from app.models.item import Item, ItemBuild, MAX_ITEM_SLOTS
-from app.models.opponent import Opponent
+from app.models.opponent import Opponent, estimate_level_from_item_count
 from app.models.rune import Rune
 from app.services.damage_calculator import (
     auto_attack_dps,
@@ -52,7 +52,19 @@ with st.sidebar:
         list(opponents.keys()),
         format_func=lambda oid: opponents[oid].name,
     )
-    opponent_level = st.slider("상대 레벨", MIN_LEVEL, MAX_LEVEL, 11)
+
+    estimated_opponent_level = estimate_level_from_item_count(len(selected_item_names))
+    manual_level_override = st.checkbox("상대 레벨 직접 입력 (자동 추정 대신 사용)")
+    if manual_level_override:
+        opponent_level = st.slider(
+            "상대 레벨 (수동)", MIN_LEVEL, MAX_LEVEL, estimated_opponent_level
+        )
+    else:
+        opponent_level = estimated_opponent_level
+        st.caption(
+            f"아이템 {len(selected_item_names)}개 기준 자동 추정 레벨: {opponent_level} "
+            "(공식 데이터가 아닌 일반적인 게임 진행 속도 근사치)"
+        )
 
 item_by_name = {item.name: item for item in items.values()}
 item_build = ItemBuild()

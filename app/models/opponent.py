@@ -2,11 +2,38 @@
 import json
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Dict, Optional
+from typing import Dict, Optional, Tuple
 
 from ._common import DATA_DIR, growth_factor
 
 DEFAULT_OPPONENTS_PATH = DATA_DIR / "opponents.json"
+
+# 아이템 개수 -> 예상 레벨 범위(최소, 최대) 매핑.
+# 라이엇 공식 데이터가 아니라 "코어 아이템을 갖췄을 때 보통 이 정도 레벨이다"라는
+# 일반적인 게임 진행 속도를 가정한 근사치이며, estimate_level_from_item_count에서
+# 범위의 중간값을 사용한다.
+ITEM_COUNT_LEVEL_RANGES: Dict[int, Tuple[int, int]] = {
+    0: (1, 3),
+    1: (6, 8),
+    2: (9, 11),
+    3: (11, 13),
+    4: (13, 15),
+    5: (15, 16),
+    6: (16, 18),
+}
+
+
+def estimate_level_from_item_count(item_count: int) -> int:
+    """아이템 개수를 기준으로 상대 챔피언의 예상 레벨을 추정 (근사치).
+
+    ITEM_COUNT_LEVEL_RANGES에 매핑된 레벨 범위의 중간값(반올림)을 반환한다.
+    실제 게임 진행 속도는 매치마다 다르므로 정확한 값이 아니라 참고용 추정치이며,
+    이 값을 그대로 쓰고 싶지 않다면 UI에서 직접 레벨을 입력해 덮어쓸 수 있다.
+    """
+    max_item_count = max(ITEM_COUNT_LEVEL_RANGES)
+    clamped_count = max(0, min(item_count, max_item_count))
+    low, high = ITEM_COUNT_LEVEL_RANGES[clamped_count]
+    return round((low + high) / 2)
 
 
 @dataclass(frozen=True)
