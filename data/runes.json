@@ -1,0 +1,47 @@
+{
+  "_comment": "Data Dragon runesReforged.json을 단순화한 예시 데이터. type=flat_stat은 고정 수치 보너스, type=conditional은 조건부 효과(발동 조건/수치는 참고용이며 damage_calculator에서 아직 계산에 반영하지 않음 - TODO).",
+  "runes": [
+    {
+      "id": 8021,
+      "key": "FleetFootwork",
+      "name": "기민한 발놀림",
+      "tree": "Precision",
+      "type": "flat_stat",
+      "stats": {
+        "PercentAttackSpeedMod": 0.08
+      },
+      "condition": null,
+      "note": "실제로는 이동 시 스택을 쌓아 체력/마나 회복 및 짧은 이동속도 증가 효과. 여기서는 고정 공격속도 보너스로 근사."
+    },
+    {
+      "id": 8010,
+      "key": "Conqueror",
+      "name": "정복자",
+      "tree": "Precision",
+      "type": "conditional",
+      "stats": {},
+      "condition": {
+        "description": "챔피언 공격/스킬 적중 시 스택 축적 (최대 5스택), 만스택 시 적응형 능력치 증가",
+        "max_stacks": 5,
+        "per_stack_adaptive_force": 1.8,
+        "max_stack_adaptive_force": 9.0
+      },
+      "note": "스택 로직은 damage_calculator에서 구현 예정."
+    },
+    {
+      "id": 9923,
+      "key": "SuddenImpact",
+      "name": "일격필살",
+      "tree": "Domination",
+      "type": "conditional",
+      "stats": {},
+      "condition": {
+        "description": "은신 또는 돌진기(루시안 E) 사용 후 4초간 다음 공격/스킬에 관통력 증가",
+        "duration_seconds": 4,
+        "lethality": 10.0,
+        "magic_penetration_percent": 7.5
+      },
+      "note": "지속시간/발동 조건 추적 로직은 damage_calculator에서 구현 예정."
+    }
+  ]
+}

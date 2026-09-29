@@ -1,0 +1,30 @@
+{
+  "_comment": "Data Dragon champion/{id}.json 형식을 참고한 예시 데이터. 실제 수치는 패치마다 바뀌므로 사용 전 최신 Data Dragon과 대조 필요.",
+  "type": "champion",
+  "format": "standAloneComplex",
+  "version": "example-14.19.1",
+  "data": {
+    "Lucian": {
+      "id": "Lucian",
+      "key": "236",
+      "name": "루시안",
+      "title": "정의의 사도",
+      "stats": {
+        "hp": 641.0,
+        "hpperlevel": 109.0,
+        "mp": 320.0,
+        "mpperlevel": 40.0,
+        "armor": 24.0,
+        "armorperlevel": 4.7,
+        "spellblock": 30.0,
+        "spellblockperlevel": 1.3,
+        "attackdamage": 60.0,
+        "attackdamageperlevel": 3.0,
+        "attackspeed": 0.638,
+        "attackspeedperlevel": 3.7,
+        "movespeed": 335.0,
+        "attackrange": 500.0
+      }
+    }
+  }
+}

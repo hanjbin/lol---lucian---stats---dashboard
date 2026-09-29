@@ -1,0 +1,21 @@
+{
+  "_comment": "상대 챔피언은 전체 스탯 대신 방어력/마법저항력만 레벨별로 단순 관리.",
+  "opponents": [
+    {
+      "id": "generic_squishy",
+      "name": "평범한 방어력 챔피언 (예시)",
+      "armor": 30.0,
+      "armor_per_level": 4.5,
+      "magic_resist": 30.0,
+      "magic_resist_per_level": 1.3
+    },
+    {
+      "id": "generic_tank",
+      "name": "탱커 챔피언 (예시)",
+      "armor": 40.0,
+      "armor_per_level": 5.5,
+      "magic_resist": 32.0,
+      "magic_resist_per_level": 1.5
+    }
+  ]
+}
