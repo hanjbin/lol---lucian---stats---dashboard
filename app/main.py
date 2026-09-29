@@ -1,4 +1,11 @@
 # Streamlit 앱 진입점
+import sys
+from pathlib import Path
+
+# streamlit run app/main.py로 실행하면 스크립트가 있는 app/ 디렉터리만
+# sys.path에 잡혀 프로젝트 루트의 app 패키지를 찾지 못함 -> 루트를 직접 추가.
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+
 import streamlit as st
 
 from app.models._common import MAX_LEVEL, MIN_LEVEL
