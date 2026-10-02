@@ -53,5 +53,5 @@ streamlit run app/main.py
 - `app/main.py`
 - `app/services/damage_calculator.py`
 - `app/services/combo_calculator.py`
-- `app/models/rune.py`
-- `app/models/champion.py`
+- `app/services/rune_effects.py`
+- `app/services/item_effects.py`
