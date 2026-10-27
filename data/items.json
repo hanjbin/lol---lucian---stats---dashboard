@@ -1,5 +1,5 @@
 {
-  "_comment": "Data Dragon 16.19.1 item.json 기준 아이템 데이터 (stats 키 이름도 Data Dragon 형식). crit_damage_bonus는 Data Dragon stats에 없는 패시브 효과라 별도 필드로 둠(추가 치명타 피해량, 0.30 = +30%p). Data Dragon stats에는 없고 설명에만 있는 스탯(AbilityHaste, PercentOmnivampMod, FlatMagicPenetrationMod, PercentTenacityMod)은 다재다능 스택 계산과 쿨타임에 필요해 설명 수치로 추가함. passive는 콤보 데미지에 영향을 주는 고유 효과로, 위키 기준 원거리 수치 (구현은 app/services/item_effects.py). [a, b]는 레벨 1~18 선형 보간. starter=true는 시작 아이템(도란류), boots=true는 신발로, 둘 다 상대 레벨 추정의 아이템 개수에서 제외. 1:1 데미지와 무관한 효과(루난의 허리케인 추가 화살, 피바라기 보호막, 판금 장화 피해 감소, 이동 속도 등)는 모델링하지 않음.",
+  "_comment": "Data Dragon 16.19.1 item.json 기준 아이템 데이터 (stats 키 이름도 Data Dragon 형식). crit_damage_bonus는 Data Dragon stats에 없는 패시브 효과라 별도 필드로 둠(추가 치명타 피해량, 0.30 = +30%p). Data Dragon stats에는 없고 설명에만 있는 스탯(AbilityHaste, PercentOmnivampMod, FlatMagicPenetrationMod, PercentTenacityMod)은 다재다능 스택 계산과 쿨타임에 필요해 설명 수치로 추가함. passive는 콤보 데미지에 영향을 주는 고유 효과로, 위키 기준 원거리 수치 (구현은 app/services/item_effects.py). [a, b]는 레벨 1~18 선형 보간. starter=true는 시작 아이템(도란류), boots=true는 신발로, 둘 다 상대 레벨 추정의 아이템 개수에서 제외. 1:1 데미지와 무관한 효과(루난의 허리케인 추가 화살, 피바라기 보호막, 판금 장화 피해 감소, 이동 속도 등)는 모델링하지 않음. 치명타 확률 아이템 13종은 metabot.gg(패치 26.20 = Data Dragon 16.20) 표에서 확인된 스탯(공격력, 공격속도, 치명타 확률)만 넣었고, 이동속도·스킬 가속·생명흡수 등 표에 없는 스탯은 비워 둠(API 연동 시 Data Dragon 값이 채움). 이 중 무한의 대검·루난의 허리케인을 제외한 11종은 고유 효과(방어력 관통, 충전 공격, 주문검 등)를 계산에 반영하지 않는 스탯 전용 아이템이며, 한국어 이름 중 일부(핀드헌터 볼트, 필멸자의 환기, 징수자)는 공식 표기 확인이 필요함.",
   "type": "item",
   "version": "16.19.1",
   "data": {
@@ -164,6 +164,95 @@
         "stack_duration_seconds": 10,
         "base_ad_ratio": 0.84,
         "target_max_health_ratio": 0.035
+      }
+    },
+    "3036": {
+      "name": "도미닉 경의 인사",
+      "plaintext": "공격력/치명타 확률, 방어력 관통 (고유 효과 미반영)",
+      "stats": {
+        "FlatPhysicalDamageMod": 35.0,
+        "FlatCritChanceMod": 0.25
+      }
+    },
+    "6673": {
+      "name": "불멸의 철갑궁",
+      "plaintext": "공격력/치명타 확률, 보호막 (고유 효과 미반영)",
+      "stats": {
+        "FlatPhysicalDamageMod": 55.0,
+        "FlatCritChanceMod": 0.25
+      }
+    },
+    "3046": {
+      "name": "유령 무희",
+      "plaintext": "공격속도/치명타 확률 (고유 효과 미반영)",
+      "stats": {
+        "PercentAttackSpeedMod": 0.65,
+        "FlatCritChanceMod": 0.25
+      }
+    },
+    "3094": {
+      "name": "래피드파이어 대포",
+      "plaintext": "공격속도/치명타 확률, 충전 공격 (고유 효과 미반영)",
+      "stats": {
+        "PercentAttackSpeedMod": 0.35,
+        "FlatCritChanceMod": 0.25
+      }
+    },
+    "3095": {
+      "name": "스톰레이저",
+      "plaintext": "공격력/공격속도/치명타 확률, 충전 공격 (고유 효과 미반영)",
+      "stats": {
+        "FlatPhysicalDamageMod": 50.0,
+        "PercentAttackSpeedMod": 0.25,
+        "FlatCritChanceMod": 0.25
+      }
+    },
+    "6675": {
+      "name": "나보리 신속검",
+      "plaintext": "공격속도/치명타 확률, 스킬 재사용 대기시간 감소 (고유 효과 미반영)",
+      "stats": {
+        "PercentAttackSpeedMod": 0.4,
+        "FlatCritChanceMod": 0.25
+      }
+    },
+    "2512": {
+      "name": "핀드헌터 볼트",
+      "plaintext": "공격속도/치명타 확률 (고유 효과 미반영)",
+      "stats": {
+        "PercentAttackSpeedMod": 0.45,
+        "FlatCritChanceMod": 0.25
+      }
+    },
+    "2523": {
+      "name": "헥스옵틱 C44",
+      "plaintext": "공격력/치명타 확률 (고유 효과 미반영)",
+      "stats": {
+        "FlatPhysicalDamageMod": 55.0,
+        "FlatCritChanceMod": 0.25
+      }
+    },
+    "3033": {
+      "name": "필멸자의 환기",
+      "plaintext": "공격력/치명타 확률, 방어력 관통 (고유 효과 미반영)",
+      "stats": {
+        "FlatPhysicalDamageMod": 35.0,
+        "FlatCritChanceMod": 0.25
+      }
+    },
+    "6676": {
+      "name": "징수자",
+      "plaintext": "공격력/치명타 확률, 처형 (고유 효과 미반영)",
+      "stats": {
+        "FlatPhysicalDamageMod": 50.0,
+        "FlatCritChanceMod": 0.25
+      }
+    },
+    "3508": {
+      "name": "정수 약탈자",
+      "plaintext": "공격력/치명타 확률, 주문검 (고유 효과 미반영)",
+      "stats": {
+        "FlatPhysicalDamageMod": 50.0,
+        "FlatCritChanceMod": 0.25
       }
     }
   }
