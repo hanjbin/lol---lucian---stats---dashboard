@@ -1,7 +1,7 @@
 {
   "_comment": "Data Dragon 16.19.1 item.json 기준 아이템 데이터 (stats 키 이름도 Data Dragon 형식). crit_damage_bonus는 Data Dragon stats에 없는 패시브 효과라 별도 필드로 둠(추가 치명타 피해량, 0.30 = +30%p). Data Dragon stats에는 없고 설명에만 있는 스탯(AbilityHaste, PercentOmnivampMod, FlatMagicPenetrationMod, PercentTenacityMod)은 다재다능 스택 계산과 쿨타임에 필요해 설명 수치로 추가함. passive는 콤보 데미지에 영향을 주는 고유 효과로, 위키 기준 원거리 수치 (구현은 app/services/item_effects.py). [a, b]는 레벨 1~18 선형 보간. starter=true는 시작 아이템(도란류), boots=true는 신발로, 둘 다 상대 레벨 추정의 아이템 개수에서 제외. 1:1 데미지와 무관한 효과(루난의 허리케인 추가 화살, 피바라기 보호막, 판금 장화 피해 감소, 이동 속도 등)는 모델링하지 않음. 치명타 확률 아이템 13종의 공격력/공격속도/치명타 확률은 metabot.gg(패치 26.20) 표 기준, 고유 효과와 부가 스탯(방어구 관통 PercentArmorPenetrationMod, 물리 관통력 Lethality, 스킬 가속, 이동 속도)은 LoL 위키/riftpatchnotes 기준. Lethality와 PercentArmorPenetrationMod는 Data Dragon stats에 없어 직접 넣은 값. unique_group이 같은 아이템(주문검: 삼위일체/정수 약탈자, 최후의 속삭임: 도미닉 경의 인사/필멸자의 환기)은 1개만 장착 가능. 불멸의 철갑궁 보호막, 유령 무희 유령 상태, 필멸자의 환기 치유 감소는 데미지와 무관해 모델링하지 않음. 한국어 이름 중 일부(핀드헌터 볼트, 필멸자의 환기, 징수자)는 공식 표기 확인 필요.",
   "type": "item",
-  "version": "16.19.1",
+  "version": "16.21.1",
   "data": {
     "3031": {
       "name": "무한의 대검",
@@ -260,7 +260,7 @@
         "attacks": 3,
         "duration_seconds": 8,
         "cooldown": 45,
-        "forced_crit_bonus": 0.6,
+        "forced_crit_ratio": 0.8,
         "true_damage_ratio": 0.15
       }
     },

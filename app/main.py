@@ -59,9 +59,14 @@ def cached_items(use_api: bool) -> ItemLoadResult:
 def show_item_data_status(result: ItemLoadResult, use_api: bool) -> None:
     if result.source == "api":
         st.caption(
-            f"아이템 스탯 수치: Data Dragon {result.version} 기준 (API). "
-            f"고유 효과 수치와 추가 치명타 피해량은 {result.local_version} 기준 로컬 데이터입니다."
+            f"아이템 수치: Data Dragon {result.version} 기준 (API). 스탯, 추가 치명타 피해량, 관통력과 "
+            f"고유 효과 {len(result.passive_from_api)}종의 수치를 API에서 불러왔습니다."
         )
+        if result.passive_local:
+            names = ", ".join(result.items[i].name for i in result.passive_local)
+            st.caption(
+                f"API 설명에 숫자가 없는 고유 효과({names})는 로컬 데이터({result.local_version}) 값을 사용합니다."
+            )
         if result.changes:
             with st.expander(f"로컬({result.local_version})과 달라진 수치 {len(result.changes)}개"):
                 st.dataframe(
@@ -72,7 +77,7 @@ def show_item_data_status(result: ItemLoadResult, use_api: bool) -> None:
                     hide_index=True,
                 )
         else:
-            st.caption(f"로컬({result.local_version}) 데이터와 수치가 모두 같습니다.")
+            st.caption(f"로컬 데이터({result.local_version})와 수치가 모두 같습니다.")
     elif use_api:
         st.warning(
             f"API에 연결하지 못해 로컬 데이터({result.version})를 사용합니다. ({result.error})"

@@ -1,6 +1,7 @@
 """아이템 고유 효과(패시브) 중 콤보 데미지에 영향을 주는 것.
 
-구현한 효과 (League of Legends 위키 기준, 루시안은 원거리라 원거리 수치 사용 - data/items.json의 passive):
+구현한 효과 (수치는 data/items.json의 passive. Data Dragon 설명에 숫자가 있는 효과는 API 연결 시 최신 값으로 갱신,
+없는 효과는 League of Legends 위키 기준 원거리 수치):
 - 크라켄 학살자 (끌어내리기): 기본 공격 적중 시 스택(4초 유지, 최대 2). 2스택에서 다음 기본 공격이
   스택을 모두 소모해 120~168(레벨 비례) 추가 물리 피해 -> 3번째 적중마다 발동.
   대상의 잃은 체력에 비례해 0~75% 증가 (잃은 체력 비율에 선형 비례한다고 가정, UI의 "상대 현재 체력" 사용).
@@ -19,7 +20,7 @@
 - 나보리 신속검 (초월): 기본 공격 시 기본 스킬(Q/W/E)의 남은 재사용 대기시간 15% 감소 (평타 1회당 1번,
   패시브 2연발의 두 번째 탄환은 별도 공격으로 보지 않음).
 - 핀드헌터 볼트 (개시 사격): 궁극기 사용 후 8초 안의 다음 기본 공격 3회가 강화되어, 치명타가 아니면
-  치명타로 60% 추가 피해, 원래 치명타면 일반 치명타 + 공격 피해(경감 전)의 15% 고정 피해 (재사용 45초).
+  일반 치명타 피해의 80%로 치명타, 원래 치명타면 일반 치명타 + 공격 피해(경감 전)의 15% 고정 피해 (재사용 45초).
   기댓값으로 계산하고 2연발 탄환은 각각 1회로 셈. 공격속도 50% 증가는 R을 쓰는 폭딜 콤보에 시간 개념이 없어 미반영.
 - 헥스옵틱 C44 (확대): 대상과의 거리 50당 기본 공격 피해 1% 증가(최대 10%). 루시안 사거리(500) 끝에서
   공격한다고 가정해 최대치 10% 적용.
@@ -144,8 +145,9 @@ class ItemCombat:
             and t <= self._barrage_until
         ):
             self._barrage_charges -= 1
-            # 치명타가 아니던 공격(1-c): 강제 치명타 (1 + 60%), 원래 치명타(c): 일반 치명타 + 고정 피해
-            factor = (1 - c) * (1 + p["forced_crit_bonus"]) + c * self.stats.crit_damage
+            # 치명타가 아니던 공격(1-c): 일반 치명타 피해의 80%로 강제 치명타, 원래 치명타(c): 일반 치명타 + 고정 피해
+            crit_damage = self.stats.crit_damage
+            factor = (1 - c) * crit_damage * p["forced_crit_ratio"] + c * crit_damage
             true_ratio = c * self.stats.crit_damage * p["true_damage_ratio"]
             return factor, true_ratio, p["name"]
         return self.stats.expected_crit_factor, 0.0, None
