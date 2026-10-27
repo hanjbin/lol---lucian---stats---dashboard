@@ -1,5 +1,5 @@
 {
-  "_comment": "Data Dragon 16.19.1 item.json 기준 아이템 데이터 (stats 키 이름도 Data Dragon 형식). crit_damage_bonus는 Data Dragon stats에 없는 패시브 효과라 별도 필드로 둠(추가 치명타 피해량, 0.30 = +30%p). Data Dragon stats에는 없고 설명에만 있는 스탯(AbilityHaste, PercentOmnivampMod, FlatMagicPenetrationMod, PercentTenacityMod)은 다재다능 스택 계산과 쿨타임에 필요해 설명 수치로 추가함. passive는 콤보 데미지에 영향을 주는 고유 효과로, 위키 기준 원거리 수치 (구현은 app/services/item_effects.py). [a, b]는 레벨 1~18 선형 보간. starter=true는 시작 아이템(도란류), boots=true는 신발로, 둘 다 상대 레벨 추정의 아이템 개수에서 제외. 1:1 데미지와 무관한 효과(루난의 허리케인 추가 화살, 피바라기 보호막, 판금 장화 피해 감소, 이동 속도 등)는 모델링하지 않음. 치명타 확률 아이템 13종의 공격력/공격속도/치명타 확률은 metabot.gg(패치 26.20) 표 기준, 고유 효과와 부가 스탯(방어구 관통 PercentArmorPenetrationMod, 물리 관통력 Lethality, 스킬 가속, 이동 속도)은 LoL 위키/riftpatchnotes 기준. Lethality와 PercentArmorPenetrationMod는 Data Dragon stats에 없어 직접 넣은 값. unique_group이 같은 아이템(주문검: 삼위일체/정수 약탈자, 최후의 속삭임: 도미닉 경의 인사/필멸자의 환기)은 1개만 장착 가능. 불멸의 철갑궁 보호막, 유령 무희 유령 상태, 필멸자의 환기 치유 감소는 데미지와 무관해 모델링하지 않음. 한국어 이름 중 일부(핀드헌터 볼트, 필멸자의 환기, 징수자)는 공식 표기 확인 필요.",
+  "_comment": "Data Dragon 16.19.1 item.json 기준 아이템 데이터 (stats 키 이름도 Data Dragon 형식). crit_damage_bonus는 Data Dragon stats에 없는 패시브 효과라 별도 필드로 둠(추가 치명타 피해량, 0.30 = +30%p). Data Dragon stats에는 없고 설명에만 있는 스탯(AbilityHaste, PercentOmnivampMod, FlatMagicPenetrationMod, PercentTenacityMod)은 다재다능 스택 계산과 쿨타임에 필요해 설명 수치로 추가함. passive는 콤보 데미지에 영향을 주는 고유 효과로, 위키 기준 원거리 수치 (구현은 app/services/item_effects.py). [a, b]는 레벨 1~18 선형 보간. starter=true는 시작 아이템(도란류), boots=true는 신발로, 둘 다 상대 레벨 추정의 아이템 개수에서 제외. 1:1 데미지와 무관한 효과(루난의 허리케인 추가 화살, 피바라기 보호막, 판금 장화 피해 감소, 이동 속도 등)는 모델링하지 않음. 치명타 확률 아이템 13종의 공격력/공격속도/치명타 확률은 metabot.gg(패치 26.20) 표 기준, 고유 효과와 부가 스탯(방어구 관통 PercentArmorPenetrationMod, 물리 관통력 Lethality, 스킬 가속, 이동 속도)은 LoL 위키/riftpatchnotes 기준. Lethality와 PercentArmorPenetrationMod는 Data Dragon stats에 없어 직접 넣은 값. unique_group이 같은 아이템(주문검: 삼위일체/정수 약탈자, 최후의 속삭임: 도미닉 경의 인사/필멸자의 운명)은 1개만 장착 가능. 불멸의 철갑궁 보호막, 유령 무희 유령 상태, 필멸자의 운명 치유 감소는 데미지와 무관해 모델링하지 않음. 한국어 이름 중 일부(악마사냥꾼의 화살, 필멸자의 운명, 징수의 총)는 공식 표기 확인 필요.",
   "type": "item",
   "version": "16.19.1",
   "data": {
@@ -247,7 +247,7 @@
       }
     },
     "2512": {
-      "name": "핀드헌터 볼트",
+      "name": "악마사냥꾼의 화살",
       "plaintext": "공격속도/치명타 확률, 궁극기 사용 후 3회 공격 강화 치명타",
       "stats": {
         "PercentAttackSpeedMod": 0.45,
@@ -256,7 +256,7 @@
       },
       "passive": {
         "key": "OpeningBarrage",
-        "name": "핀드헌터 볼트 (개시 사격)",
+        "name": "악마사냥꾼의 화살 (개시 사격)",
         "attacks": 3,
         "duration_seconds": 8,
         "cooldown": 45,
@@ -280,7 +280,7 @@
       }
     },
     "3033": {
-      "name": "필멸자의 환기",
+      "name": "필멸자의 운명",
       "plaintext": "공격력/치명타 확률, 방어구 관통 30%, 치유 감소(데미지 영향 없음)",
       "stats": {
         "FlatPhysicalDamageMod": 35.0,
@@ -290,7 +290,7 @@
       "unique_group": "LastWhisper"
     },
     "6676": {
-      "name": "징수자",
+      "name": "징수의 총",
       "plaintext": "공격력/치명타 확률/물리 관통력, 체력 5% 미만 처형",
       "stats": {
         "FlatPhysicalDamageMod": 50.0,
@@ -299,7 +299,7 @@
       },
       "passive": {
         "key": "Execute",
-        "name": "징수자 (처형)",
+        "name": "징수의 총 (처형)",
         "health_threshold": 0.05
       }
     },

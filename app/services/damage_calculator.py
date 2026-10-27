@@ -29,8 +29,8 @@ class CombinedStats:
     ability_haste: float
     crit_damage: float = BASE_CRIT_DAMAGE  # 치명타 시 피해 배율 (2.0 = 200%)
     bonus_attack_speed: float = 0.0  # 아이템/룬으로 얻은 추가 공격속도 비율
-    armor_pen_percent: float = 0.0  # 방어구 관통 % (도미닉 경의 인사 35%, 필멸자의 환기 30%)
-    lethality: float = 0.0  # 물리 관통력 (징수자 10)
+    armor_pen_percent: float = 0.0  # 방어구 관통 % (도미닉 경의 인사 35%, 필멸자의 운명 30%)
+    lethality: float = 0.0  # 물리 관통력 (징수의 총 10)
 
     def effective_armor(self, armor: float) -> float:
         """방어구 관통/물리 관통력을 적용한 대상의 실질 방어력."""
