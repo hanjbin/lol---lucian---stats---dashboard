@@ -136,7 +136,7 @@ with st.sidebar:
     target_health_percent = st.slider("상대 현재 체력 (%)", 1, 100, 100)
     st.caption(
         "최후의 일격(40% 미만)·체력차 극복(60% 초과) 발동 판정과 크라켄 학살자 피해 증가(잃은 체력 비례), "
-        "징수의 총 처형(콤보 후 5% 미만) 판정에 사용. 콤보 중에는 변하지 않는다고 가정."
+        "징수자 처형(콤보 후 5% 미만) 판정에 사용. 콤보 중에는 변하지 않는다고 가정."
     )
     target_bonus_health = st.number_input(
         "상대 추가 체력 (아이템 등)", min_value=0, max_value=5000, value=0, step=100

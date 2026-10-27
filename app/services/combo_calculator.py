@@ -19,7 +19,7 @@
 - AP는 0으로 가정해 AP 계수는 무시.
 - 룬 효과는 services/rune_effects.py, 아이템 고유 효과(크라켄 학살자, 주문검, 선체파괴자, 치명타 아이템 효과)는
   services/item_effects.py 참고. 룬/아이템 발동 피해는 타임라인에 별도 행으로 표시.
-- 방어구 관통/물리 관통력(도미닉 경의 인사, 필멸자의 운명, 징수의 총)은 상대 방어력에 먼저 적용해 모든 물리 피해에 반영.
+- 방어구 관통/물리 관통력(도미닉 경의 인사, 필멸자의 환기, 징수자)은 상대 방어력에 먼저 적용해 모든 물리 피해에 반영.
 """
 from dataclasses import dataclass
 from typing import Dict, List, Optional, Tuple
@@ -188,7 +188,7 @@ class _ComboSimulator:
         execute = self.items.execute_damage(sum(e.damage for e in self.events))
         if execute:
             last_time = self.events[-1].time if self.events else None
-            self.events.append(ComboEvent(last_time, "징수의 총 (처형)", execute))
+            self.events.append(ComboEvent(last_time, "징수자 (처형)", execute))
         return ComboResult(
             events=tuple(self.events),
             total_damage=sum(e.damage for e in self.events),

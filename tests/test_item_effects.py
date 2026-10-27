@@ -187,7 +187,7 @@ def test_fiendhunter_empowers_attacks_after_ultimate(kit, opponent, armor_factor
     assert bolts.events[1].damage == pytest.approx(base.events[1].damage)  # R 전 평타는 그대로
 
     crit = burst_combo(kit, LEVEL, _crit_stats(0.5), opponent, LEVEL, item_build=_build("2512"))
-    true_damage = _procs(crit, "악마사냥꾼의 화살 (개시 사격) 고정 피해")
+    true_damage = _procs(crit, "핀드헌터 볼트 (개시 사격) 고정 피해")
     # 탄환 2발(100% + 60%) × 치명타 확률 0.5 × 치명타 배율 2 × 15%
     assert true_damage == [(None, pytest.approx(100 * 1.6 * 0.5 * 2 * 0.15))]
 
@@ -224,10 +224,10 @@ def test_collector_executes_when_target_left_below_five_percent(kit, opponent):
     result = burst_combo(
         kit, LEVEL, _stats(), opponent, LEVEL, target_health_ratio=ratio, item_build=_build("6676")
     )
-    assert _procs(result, "징수의 총 (처형)") == [(None, pytest.approx(0.03 * max_health))]
+    assert _procs(result, "징수자 (처형)") == [(None, pytest.approx(0.03 * max_health))]
     assert result.total_damage == pytest.approx(ratio * max_health)
 
 
 def test_collector_does_not_execute_healthy_target(kit, opponent):
     result = burst_combo(kit, LEVEL, _stats(), opponent, LEVEL, item_build=_build("6676"))
-    assert _procs(result, "징수의 총 (처형)") == []
+    assert _procs(result, "징수자 (처형)") == []
