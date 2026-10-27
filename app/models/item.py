@@ -21,6 +21,8 @@ class Item:
     is_boots: bool = False  # 신발 (상대 레벨 추정 시 제외)
     # 콤보 데미지에 영향을 주는 고유 효과 (services/item_effects.py에서 key로 구현을 찾음)
     passive: Optional[dict] = field(default=None, hash=False, compare=False)
+    # 같은 계열 중 1개만 살 수 있는 아이템 그룹 (예: 주문검 - 삼위일체/정수 약탈자, 최후의 속삭임 - 도미닉/필멸자)
+    unique_group: Optional[str] = None
 
     @property
     def counts_for_level_estimate(self) -> bool:
@@ -52,6 +54,7 @@ class Item:
                 is_starter=data.get("starter", False),
                 is_boots=data.get("boots", False),
                 passive=data.get("passive"),
+                unique_group=data.get("unique_group"),
             )
         return items
 
@@ -89,6 +92,13 @@ class ItemBuild:
     def add(self, item: Item) -> None:
         if len(self.items) >= MAX_ITEM_SLOTS:
             raise ValueError(f"아이템은 최대 {MAX_ITEM_SLOTS}개까지 장착할 수 있습니다.")
+        if item.unique_group:
+            for owned in self.items:
+                if owned.unique_group == item.unique_group:
+                    raise ValueError(
+                        f"{owned.name}와(과) {item.name}은(는) 같은 계열({item.unique_group}) 아이템이라 "
+                        "하나만 장착할 수 있습니다."
+                    )
         self.items.append(item)
 
     def total_stats(self) -> Dict[str, float]:
@@ -97,6 +107,10 @@ class ItemBuild:
             for stat, value in item.stats.items():
                 totals[stat] = totals.get(stat, 0.0) + value
         return totals
+
+    def armor_pen_percent(self) -> float:
+        # 방어구 관통 %는 같은 계열(최후의 속삭임) 1개만 장착 가능 -> 최댓값
+        return max((item.stats.get("PercentArmorPenetrationMod", 0.0) for item in self.items), default=0.0)
 
     def crit_damage_bonus(self) -> float:
         # 무한의 대검 패시브는 고유(Unique) 효과라 여러 개를 껴도 중첩되지 않음 -> 합이 아닌 최댓값

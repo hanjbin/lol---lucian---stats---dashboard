@@ -17,8 +17,9 @@
   탄환 피해에는 치명타 확률·치명타 피해량(무한의 대검 포함)을 적용하지 않음. Q/W도 치명타 없음.
 - 스킬은 모든 타가 명중한다고 가정 (R의 모든 탄환 명중).
 - AP는 0으로 가정해 AP 계수는 무시.
-- 룬 효과는 services/rune_effects.py, 아이템 고유 효과(크라켄 학살자, 주문검, 선체파괴자)는
+- 룬 효과는 services/rune_effects.py, 아이템 고유 효과(크라켄 학살자, 주문검, 선체파괴자, 치명타 아이템 효과)는
   services/item_effects.py 참고. 룬/아이템 발동 피해는 타임라인에 별도 행으로 표시.
+- 방어구 관통/물리 관통력(도미닉 경의 인사, 필멸자의 환기, 징수자)은 상대 방어력에 먼저 적용해 모든 물리 피해에 반영.
 """
 from dataclasses import dataclass
 from typing import Dict, List, Optional, Tuple
@@ -29,7 +30,7 @@ from app.models.rune import RunePage
 from app.models.skill import MAGIC, NO_DAMAGE, PHYSICAL, ChampionKit
 from app.services.damage_calculator import CombinedStats
 from app.services.mitigation import damage_after_resist
-from app.services.item_effects import ItemCombat
+from app.services.item_effects import BASIC_ABILITIES, MAGIC_DAMAGE, TRUE_DAMAGE, ItemCombat
 from app.services.rune_effects import DamageProc, RuneCombat
 
 DPS_COMBO_DURATION = 5.0
@@ -79,13 +80,14 @@ class _ComboSimulator:
         target_health_ratio: float,
         item_build: Optional[ItemBuild],
         timed: bool,
+        target_bonus_health: float = 0.0,
     ):
         self.kit = kit
         self.stats = stats
         self.timed = timed
         self.ranks: Dict[str, int] = {key: kit.rank_at_level(key, level) for key in kit.skills}
         self.passive_ratio = kit.passive_second_shot_ratio(level)
-        self.armor = opponent.armor_at_level(opponent_level)
+        self.armor = stats.effective_armor(opponent.armor_at_level(opponent_level))
         self.magic_resist = opponent.magic_resist_at_level(opponent_level)
         self.runes = RuneCombat(
             rune_page, level, stats, self.armor, self.magic_resist, target_health_ratio
@@ -95,7 +97,8 @@ class _ComboSimulator:
             level,
             stats,
             target_health_ratio,
-            opponent.health_at_level(opponent_level),
+            opponent.health_at_level(opponent_level) + target_bonus_health,
+            target_bonus_health,
         )
         self.events: List[ComboEvent] = []
         self.ready_at: Dict[str, float] = {}
@@ -110,7 +113,7 @@ class _ComboSimulator:
 
     def cast(self, key: str, t: float) -> None:
         self.runes.on_skill_cast(key, t)
-        self.items.on_skill_cast(t)
+        self.items.on_skill_cast(t, key)
         skill = self.kit.skills[key]
         damage = 0.0
         procs: List[DamageProc] = []
@@ -142,21 +145,37 @@ class _ComboSimulator:
         for ratio in shot_ratios:
             procs += self.runes.before_attack(t)
             ad = self.stats.attack_damage + self.runes.bonus_attack_damage()
-            raw = ad * ratio * self.stats.expected_crit_factor
+            crit_factor, true_ratio, crit_item = self.items.shot_crit(t)
+            raw = ad * ratio * crit_factor * self.items.basic_attack_multiplier()
             multiplier = self.runes.damage_multiplier(t)
             damage += damage_after_resist(raw, self.armor) * multiplier
+            if true_ratio:
+                procs.append(DamageProc(f"{crit_item} 고정 피해", ad * ratio * true_ratio * multiplier))
             procs += [
-                DamageProc(p.name, damage_after_resist(p.raw_physical_damage, self.armor) * multiplier)
+                DamageProc(p.name, self._mitigate(p.raw_damage, p.damage_type) * multiplier)
                 for p in self.items.on_attack_hit(t)
             ]
             procs += self.runes.after_attack(t)
         action = EMPOWERED_AUTO_ATTACK if self.empowered else AUTO_ATTACK
         self._record(t, action, damage, procs)
         self.empowered = False
+        reduction = self.items.remaining_cooldown_reduction
+        if reduction:
+            for key in BASIC_ABILITIES:
+                if self.ready_at.get(key, t) > t:
+                    self.ready_at[key] = t + (self.ready_at[key] - t) * (1 - reduction)
         return t + 1 / self.attack_speed()
+
+    def _mitigate(self, raw: float, damage_type: str) -> float:
+        if damage_type == TRUE_DAMAGE:
+            return raw
+        return damage_after_resist(raw, self.magic_resist if damage_type == MAGIC_DAMAGE else self.armor)
 
     def _record(self, t: float, action: str, damage: float, procs: List[DamageProc]) -> None:
         shown_time = t if self.timed else None
+        amp = self.items.damage_multiplier()  # 도미닉 경의 인사 거인 학살자 (모든 피해)
+        damage *= amp
+        procs = [DamageProc(p.name, p.damage * amp) for p in procs]
         self.events.append(ComboEvent(shown_time, action, damage))
         # 한 행동에서 같은 룬/아이템 효과가 여러 번 발동하면(예: 2연발 각각의 칼날비) 한 행으로 합산
         merged: Dict[str, float] = {}
@@ -166,6 +185,10 @@ class _ComboSimulator:
             self.events.append(ComboEvent(shown_time, name, proc_damage))
 
     def result(self, duration: Optional[float] = None) -> ComboResult:
+        execute = self.items.execute_damage(sum(e.damage for e in self.events))
+        if execute:
+            last_time = self.events[-1].time if self.events else None
+            self.events.append(ComboEvent(last_time, "징수자 (처형)", execute))
         return ComboResult(
             events=tuple(self.events),
             total_damage=sum(e.damage for e in self.events),
@@ -183,6 +206,7 @@ def dps_combo(
     target_health_ratio: float = 1.0,
     item_build: Optional[ItemBuild] = None,
     duration: float = DPS_COMBO_DURATION,
+    target_bonus_health: float = 0.0,
 ) -> ComboResult:
     """E → 평타 → Q → 평타 → W → 평타 이후, duration초까지 평타를 치며 쿨이 돌아온 스킬을 즉시 사용.
 
@@ -191,7 +215,7 @@ def dps_combo(
     """
     sim = _ComboSimulator(
         kit, level, stats, opponent, opponent_level, rune_page, target_health_ratio, item_build,
-        timed=True,
+        timed=True, target_bonus_health=target_bonus_health,
     )
 
     # 시작 순서: 스킬은 직전 평타와 같은 시각에 시전(시전 시간 0), 이어서 다음 평타
@@ -229,6 +253,7 @@ def burst_combo(
     rune_page: Optional[RunePage] = None,
     target_health_ratio: float = 1.0,
     item_build: Optional[ItemBuild] = None,
+    target_bonus_health: float = 0.0,
 ) -> ComboResult:
     """E → 평타 → Q → 평타 → W → 평타 → R → 평타 8타 시퀀스 1회의 총 데미지 (시간 제한 없음).
 
@@ -236,7 +261,7 @@ def burst_combo(
     """
     sim = _ComboSimulator(
         kit, level, stats, opponent, opponent_level, rune_page, target_health_ratio, item_build,
-        timed=False,
+        timed=False, target_bonus_health=target_bonus_health,
     )
     for key in BURST_SEQUENCE:
         if sim.is_learned(key):

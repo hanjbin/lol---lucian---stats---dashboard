@@ -6,7 +6,7 @@ from app.models.champion import ChampionStatsAtLevel
 from app.models.item import ItemBuild
 from app.models.opponent import Opponent
 from app.models.rune import RunePage
-from app.services.mitigation import damage_after_resist
+from app.services.mitigation import damage_after_resist, effective_armor
 from app.services.rune_effects import rune_stat_bonus
 
 # 기본 치명타 피해량 200% (League of Legends 위키 스탯 표 기준).
@@ -29,6 +29,12 @@ class CombinedStats:
     ability_haste: float
     crit_damage: float = BASE_CRIT_DAMAGE  # 치명타 시 피해 배율 (2.0 = 200%)
     bonus_attack_speed: float = 0.0  # 아이템/룬으로 얻은 추가 공격속도 비율
+    armor_pen_percent: float = 0.0  # 방어구 관통 % (도미닉 경의 인사 35%, 필멸자의 환기 30%)
+    lethality: float = 0.0  # 물리 관통력 (징수자 10)
+
+    def effective_armor(self, armor: float) -> float:
+        """방어구 관통/물리 관통력을 적용한 대상의 실질 방어력."""
+        return effective_armor(armor, self.armor_pen_percent, self.lethality)
 
     @property
     def base_attack_speed(self) -> float:
@@ -66,14 +72,16 @@ def combine_stats(
         ability_haste=items.get("AbilityHaste", 0.0) + runes.ability_haste,
         crit_damage=BASE_CRIT_DAMAGE + item_build.crit_damage_bonus(),
         bonus_attack_speed=percent_as,
+        armor_pen_percent=item_build.armor_pen_percent(),
+        lethality=items.get("Lethality", 0.0),
     )
 
 
 def expected_auto_attack_damage(
     stats: CombinedStats, opponent: Opponent, opponent_level: int
 ) -> float:
-    """치명타 확률을 고려한 평타 1회 기대 데미지 (방어력 적용 후, 조건부 룬 미포함)."""
-    armor = opponent.armor_at_level(opponent_level)
+    """치명타 확률을 고려한 평타 1회 기대 데미지 (방어구 관통 반영한 방어력 적용 후, 조건부 룬 미포함)."""
+    armor = stats.effective_armor(opponent.armor_at_level(opponent_level))
     raw_damage = stats.attack_damage * stats.expected_crit_factor
     return damage_after_resist(raw_damage, armor)
 

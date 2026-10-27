@@ -8,9 +8,25 @@
   재사용 대기시간 1.5초 (강화 공격 후 시작). 대기시간 중 사용한 스킬은 주문검을 충전하지 않는다고 가정.
 - 선체파괴자 (선장): 기본 공격 적중 시 스택(10초 유지). 5번째 공격마다 기본 공격력 84% + 대상 최대 체력 3.5%
   추가 물리 피해.
+- 정수 약탈자 (주문검): 스킬 사용 후 다음 기본 공격에 기본 공격력의 125% + (치명타 확률 × 50%) 추가 물리 피해.
+  "치명타 확률에 비례해 최대 50%"를 치명타 확률에 선형 비례한다고 가정. 삼위일체와 같은 주문검 계열이라 1개만 장착.
+- 도미닉 경의 인사: 방어구 관통 35%(스탯, damage_calculator에서 반영) + 거인 학살자: 대상의 추가 체력
+  100당 피해량 1% 증가(최대 15%). 상대 아이템을 모델링하지 않으므로 추가 체력은 UI 입력값 사용(기본 0).
+- 필멸자의 환기: 방어구 관통 30%(스탯). 치유 감소는 데미지와 무관.
+- 징수자: 물리 관통력 10(스탯) + 처형: 콤보 후 대상 체력이 최대 체력의 5% 미만으로 남으면 남은 체력만큼 처형 피해.
+- 스톰레이저 / 래피드파이어 대포 (충전): 충전 상태의 다음 기본 공격에 추가 마법 피해 100 / 40.
+  교전 전 이동으로 이미 완전 충전되어 있다고 보고 콤보 첫 공격에 1회만 적용 (콤보 중 재충전은 미반영).
+- 나보리 신속검 (초월): 기본 공격 시 기본 스킬(Q/W/E)의 남은 재사용 대기시간 15% 감소 (평타 1회당 1번,
+  패시브 2연발의 두 번째 탄환은 별도 공격으로 보지 않음).
+- 핀드헌터 볼트 (개시 사격): 궁극기 사용 후 8초 안의 다음 기본 공격 3회가 강화되어, 치명타가 아니면
+  치명타로 60% 추가 피해, 원래 치명타면 일반 치명타 + 공격 피해(경감 전)의 15% 고정 피해 (재사용 45초).
+  기댓값으로 계산하고 2연발 탄환은 각각 1회로 셈. 공격속도 50% 증가는 R을 쓰는 폭딜 콤보에 시간 개념이 없어 미반영.
+- 헥스옵틱 C44 (확대): 대상과의 거리 50당 기본 공격 피해 1% 증가(최대 10%). 루시안 사거리(500) 끝에서
+  공격한다고 가정해 최대치 10% 적용.
 
 모델링하지 않은 효과 (1:1 데미지와 무관): 루난의 허리케인 추가 화살(주변 다른 적 대상), 피바라기 보호막,
-판금 장화 피해 감소, 이동 속도 효과 등. 무한의 대검 치명타 피해량은 CombinedStats.crit_damage에 반영됨.
+불멸의 철갑궁 보호막, 유령 무희 유령 상태, 필멸자의 환기 치유 감소, 핀드헌터 볼트 궁극기 가속,
+헥스옵틱 처치 시 사거리 증가, 판금 장화 피해 감소, 이동 속도 효과 등. 무한의 대검 치명타 피해량은 CombinedStats.crit_damage에 반영됨.
 
 가정:
 - 패시브(빛의 사도) 2연발의 두 번째 탄환도 적중 시 효과를 적용하므로(위키) 크라켄/선체파괴자 스택은 탄환마다 쌓음.
@@ -32,10 +48,17 @@ if TYPE_CHECKING:
     from app.services.damage_calculator import CombinedStats
 
 
+PHYSICAL_DAMAGE = "physical"
+MAGIC_DAMAGE = "magic"
+TRUE_DAMAGE = "true"
+BASIC_ABILITIES = ("Q", "W", "E")
+
+
 @dataclass(frozen=True)
 class ItemProc:
     name: str
-    raw_physical_damage: float  # 방어력/룬 증폭 적용 전
+    raw_damage: float  # 방어력/마법 저항력/룬 증폭 적용 전
+    damage_type: str = PHYSICAL_DAMAGE
 
 
 class ItemCombat:
@@ -48,11 +71,13 @@ class ItemCombat:
         stats: "CombinedStats",
         target_health_ratio: float,
         target_max_health: float,
+        target_bonus_health: float = 0.0,
     ):
         self.level = level
         self.stats = stats
         self.target_health_ratio = target_health_ratio
         self.target_max_health = target_max_health
+        self.target_bonus_health = target_bonus_health
         self._passives: Dict[str, dict] = {}
         for item in item_build.items if item_build else ():
             if item.passive:
@@ -64,15 +89,76 @@ class ItemCombat:
         self._skipper_last_hit: Optional[float] = None
         self._spellblade_until: Optional[float] = None
         self._spellblade_ready_at = float("-inf")
+        self._energized_used = False
+        self._barrage_charges = 0
+        self._barrage_until: Optional[float] = None
+        self._barrage_ready_at = float("-inf")
 
     @property
     def _base_attack_damage(self) -> float:
         return self.stats.attack_damage - self.stats.bonus_attack_damage
 
-    def on_skill_cast(self, t: float) -> None:
+    def damage_multiplier(self) -> float:
+        """모든 피해에 곱하는 배율 (도미닉 경의 인사 거인 학살자)."""
+        p = self._passives.get("GiantSlayer")
+        if not p:
+            return 1.0
+        amp = p["amp_per_100_bonus_health"] * max(self.target_bonus_health, 0.0) / 100
+        return 1 + min(amp, p["max_amp"])
+
+    def basic_attack_multiplier(self) -> float:
+        """기본 공격 피해에만 곱하는 배율 (헥스옵틱 C44 확대)."""
+        p = self._passives.get("Magnification")
+        if not p:
+            return 1.0
+        return 1 + min(p["amp_per_50_units"] * p["assumed_distance"] / 50, p["max_amp"])
+
+    @property
+    def remaining_cooldown_reduction(self) -> float:
+        """기본 공격 시 기본 스킬 남은 재사용 대기시간 감소 비율 (나보리 신속검)."""
+        p = self._passives.get("Transcendence")
+        return p["remaining_cooldown_reduction"] if p else 0.0
+
+    def on_skill_cast(self, t: float, key: str = "") -> None:
         p = self._passives.get("Spellblade")
         if p and t >= self._spellblade_ready_at:
             self._spellblade_until = t + p["duration_seconds"]
+
+        p = self._passives.get("OpeningBarrage")
+        if p and key == "R" and t >= self._barrage_ready_at:
+            self._barrage_charges = p["attacks"]
+            self._barrage_until = t + p["duration_seconds"]
+            self._barrage_ready_at = t + p["cooldown"]
+
+    def shot_crit(self, t: float):
+        """탄환 1발의 (치명타 기댓값 배율, 경감 전 피해 대비 기대 고정 피해 비율).
+
+        핀드헌터 볼트 강화 공격이면 강화 횟수를 1 소모하고 강화된 기댓값을 돌려준다.
+        """
+        c = self.stats.crit_chance
+        p = self._passives.get("OpeningBarrage")
+        if (
+            p
+            and self._barrage_charges > 0
+            and self._barrage_until is not None
+            and t <= self._barrage_until
+        ):
+            self._barrage_charges -= 1
+            # 치명타가 아니던 공격(1-c): 강제 치명타 (1 + 60%), 원래 치명타(c): 일반 치명타 + 고정 피해
+            factor = (1 - c) * (1 + p["forced_crit_bonus"]) + c * self.stats.crit_damage
+            true_ratio = c * self.stats.crit_damage * p["true_damage_ratio"]
+            return factor, true_ratio, p["name"]
+        return self.stats.expected_crit_factor, 0.0, None
+
+    def execute_damage(self, total_damage: float) -> float:
+        """징수자 처형: 콤보 후 남은 체력이 최대 체력의 일정 비율 미만이면 남은 체력만큼 추가 피해."""
+        p = self._passives.get("Execute")
+        if not p:
+            return 0.0
+        remaining = self.target_health_ratio * self.target_max_health - total_damage
+        if 0 < remaining < p["health_threshold"] * self.target_max_health:
+            return remaining
+        return 0.0
 
     def on_attack_hit(self, t: float) -> List[ItemProc]:
         """기본 공격 탄환 1발 적중 시 발동하는 아이템 효과."""
@@ -80,7 +166,8 @@ class ItemCombat:
 
         p = self._passives.get("Spellblade")
         if p and self._spellblade_until is not None and t <= self._spellblade_until:
-            procs.append(ItemProc(p["name"], p["base_ad_ratio"] * self._base_attack_damage))
+            ratio = p["base_ad_ratio"] + p.get("crit_chance_base_ad_ratio", 0.0) * self.stats.crit_chance
+            procs.append(ItemProc(p["name"], ratio * self._base_attack_damage))
             self._spellblade_until = None
             self._spellblade_ready_at = t + p["cooldown"]
 
@@ -113,6 +200,13 @@ class ItemCombat:
                 self._skipper_stacks = 0
             else:
                 self._skipper_stacks += 1
+
+        if not self._energized_used:
+            # 충전 효과(스톰레이저, 래피드파이어 대포)는 콤보 첫 탄환에 1회
+            for p in self._passives.values():
+                if p.get("type") == "energized":
+                    procs.append(ItemProc(p["name"], p["damage"], p.get("damage_type", PHYSICAL_DAMAGE)))
+            self._energized_used = True
 
         return procs
 

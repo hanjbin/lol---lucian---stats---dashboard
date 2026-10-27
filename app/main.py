@@ -135,9 +135,13 @@ with st.sidebar:
         )
     target_health_percent = st.slider("상대 현재 체력 (%)", 1, 100, 100)
     st.caption(
-        "최후의 일격(40% 미만)·체력차 극복(60% 초과) 발동 판정과 크라켄 학살자 피해 증가(잃은 체력 비례)에 사용. "
-        "콤보 중에는 변하지 않는다고 가정."
+        "최후의 일격(40% 미만)·체력차 극복(60% 초과) 발동 판정과 크라켄 학살자 피해 증가(잃은 체력 비례), "
+        "징수자 처형(콤보 후 5% 미만) 판정에 사용. 콤보 중에는 변하지 않는다고 가정."
     )
+    target_bonus_health = st.number_input(
+        "상대 추가 체력 (아이템 등)", min_value=0, max_value=5000, value=0, step=100
+    )
+    st.caption("도미닉 경의 인사 거인 학살자(추가 체력 100당 피해 1%, 최대 15%)와 선체파괴자 최대 체력 비례 피해에 사용.")
 
     st.header("룬")
     primary_tree = st.selectbox(
@@ -185,7 +189,11 @@ with st.sidebar:
 
 item_build = ItemBuild()
 for name in selected_item_names:
-    item_build.add(item_by_name[name])
+    try:
+        item_build.add(item_by_name[name])
+    except ValueError as e:
+        # 같은 계열 고유 아이템(주문검, 최후의 속삭임)은 게임에서도 1개만 살 수 있음 -> 나중에 고른 것 제외
+        st.warning(f"{e} '{name}'은(는) 계산에서 제외합니다.")
 
 champion_stats = champion.stats_at_level(level)
 combined = combine_stats(champion_stats, item_build, rune_page)
@@ -199,6 +207,11 @@ col2.metric("공격속도", f"{combined.attack_speed:.2f}")
 col3.metric("치명타 확률", f"{combined.crit_chance * 100:.0f}%")
 col4.metric("치명타 피해량", f"{combined.crit_damage * 100:.0f}%")
 col5.metric("생명흡수", f"{combined.life_steal_percent * 100:.0f}%")
+if combined.armor_pen_percent or combined.lethality:
+    st.caption(
+        f"방어구 관통 {combined.armor_pen_percent * 100:.0f}% · 물리 관통력 {combined.lethality:.0f} "
+        "(상대 방어력에 적용)"
+    )
 
 st.subheader(f"{opponent.name} (레벨 {opponent_level}) 대상 평타 딜량")
 single_hit = expected_auto_attack_damage(combined, opponent, opponent_level)
@@ -211,8 +224,8 @@ col2.metric("초당 평타 데미지 (DPS)", f"{dps:.1f}")
 st.caption(
     "치명타는 확률 기반 기댓값으로 계산합니다 (치명타 피해량 기본 200%, 무한의 대검 보유 시 230%). "
     "이 섹션에는 상시 스탯 룬(전설 룬 등)만 반영되고, 조건부 룬(집중 공격, 감전 등)은 "
-    "아래 스킬 콤보에서 발동 조건을 판단해 반영합니다. 아이템 고유 효과(크라켄 학살자, 삼위일체 주문검, "
-    "선체파괴자)도 스킬 콤보에서만 반영됩니다."
+    "아래 스킬 콤보에서 발동 조건을 판단해 반영합니다. 아이템 고유 효과(크라켄 학살자, 주문검, "
+    "선체파괴자, 충전 공격, 처형 등)도 스킬 콤보에서만 반영되고, 방어구 관통은 여기에도 반영됩니다."
 )
 
 st.subheader("스킬 콤보")
@@ -223,10 +236,12 @@ st.caption(
 
 target_health_ratio = target_health_percent / 100
 dps_result = dps_combo(
-    kit, level, combined, opponent, opponent_level, rune_page, target_health_ratio, item_build
+    kit, level, combined, opponent, opponent_level, rune_page, target_health_ratio, item_build,
+    target_bonus_health=target_bonus_health,
 )
 burst_result = burst_combo(
-    kit, level, combined, opponent, opponent_level, rune_page, target_health_ratio, item_build
+    kit, level, combined, opponent, opponent_level, rune_page, target_health_ratio, item_build,
+    target_bonus_health=target_bonus_health,
 )
 
 dps_col, burst_col = st.columns(2)
