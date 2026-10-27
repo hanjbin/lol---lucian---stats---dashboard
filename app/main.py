@@ -12,7 +12,7 @@ import streamlit as st
 
 from app.models._common import MAX_LEVEL, MIN_LEVEL
 from app.models.champion import Champion
-from app.models.item import Item, ItemBuild, MAX_ITEM_SLOTS
+from app.models.item import ItemBuild, MAX_ITEM_SLOTS
 from app.models.opponent import Opponent, estimate_level_from_item_count
 from app.models.rune import NO_EFFECT, Rune, RunePage, RuneTree
 from app.models.skill import ChampionKit
@@ -27,6 +27,9 @@ from app.services.damage_calculator import (
     combine_stats,
     expected_auto_attack_damage,
 )
+from app.services.data_dragon import ItemLoadResult, load_items
+
+ITEM_CACHE_SECONDS = 3600  # Data Dragon은 패치 때만 바뀌므로 1시간마다 다시 확인하면 충분
 
 
 def combo_table(result: ComboResult) -> list:
@@ -48,16 +51,53 @@ def tree_label(tree: RuneTree) -> str:
     return tree.name
 
 
+@st.cache_data(ttl=ITEM_CACHE_SECONDS, show_spinner="Data Dragon에서 최신 아이템 수치를 불러오는 중...")
+def cached_items(use_api: bool) -> ItemLoadResult:
+    return load_items(use_api)
+
+
+def show_item_data_status(result: ItemLoadResult, use_api: bool) -> None:
+    if result.source == "api":
+        st.caption(
+            f"아이템 스탯 수치: Data Dragon {result.version} 기준 (API). "
+            f"고유 효과 수치와 추가 치명타 피해량은 {result.local_version} 기준 로컬 데이터입니다."
+        )
+        if result.changes:
+            with st.expander(f"로컬({result.local_version})과 달라진 수치 {len(result.changes)}개"):
+                st.dataframe(
+                    [
+                        {"아이템": c.item_name, "스탯": c.label, "로컬 값": c.old, "API 값": c.new}
+                        for c in result.changes
+                    ],
+                    hide_index=True,
+                )
+        else:
+            st.caption(f"로컬({result.local_version}) 데이터와 수치가 모두 같습니다.")
+    elif use_api:
+        st.warning(
+            f"API에 연결하지 못해 로컬 데이터({result.version})를 사용합니다. ({result.error})"
+        )
+    else:
+        st.caption(f"로컬 데이터(Data Dragon {result.version} 기준)를 사용 중입니다.")
+
+
 st.set_page_config(page_title="루시안 딜량 계산기", page_icon="🗡️")
 st.title("루시안 딜량 계산기")
 
 champion = Champion.load("Lucian")
 kit = ChampionKit.load()
-items = Item.load_all()
 rune_trees = RuneTree.load_all()
 opponents = Opponent.load_all()
 
 with st.sidebar:
+    st.header("아이템 데이터")
+    use_api = st.checkbox("Data Dragon API에서 최신 아이템 수치 불러오기", value=True)
+    if st.button("지금 다시 불러오기"):
+        st.cache_data.clear()
+    item_data = cached_items(use_api)
+    show_item_data_status(item_data, use_api)
+    items = item_data.items
+
     st.header("루시안 설정")
     level = st.slider("레벨", MIN_LEVEL, MAX_LEVEL, 11)
 

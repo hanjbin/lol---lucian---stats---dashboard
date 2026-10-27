@@ -27,12 +27,20 @@ class Item:
         # 레벨 추정 매핑은 완성 아이템 기준이라 시작 아이템과 신발은 개수에서 제외
         return not (self.is_starter or self.is_boots)
 
-    @classmethod
-    def load_all(cls, path: Optional[Path] = None) -> Dict[str, "Item"]:
+    @staticmethod
+    def read_raw(path: Optional[Path] = None) -> dict:
+        """items.json 파일을 dict로 읽어온다 (Item 객체로 바꾸기 전 원본)."""
         path = path or DEFAULT_ITEMS_PATH
         with open(path, "r", encoding="utf-8") as f:
-            raw = json.load(f)
+            return json.load(f)
 
+    @classmethod
+    def load_all(cls, path: Optional[Path] = None) -> Dict[str, "Item"]:
+        return cls.from_raw(cls.read_raw(path))
+
+    @classmethod
+    def from_raw(cls, raw: dict) -> Dict[str, "Item"]:
+        """items.json과 같은 구조의 dict에서 Item 객체들을 만든다 (API 수치를 반영한 dict도 같은 경로로 처리)."""
         items = {}
         for item_id, data in raw["data"].items():
             items[item_id] = cls(
